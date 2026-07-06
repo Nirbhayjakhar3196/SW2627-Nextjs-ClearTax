@@ -6,26 +6,19 @@ const statusTone = {
 
 export default function UploadProgress({ jobs = [] }) {
   return (
-    <section className="rounded-[28px] border border-[rgba(86,67,43,0.14)] bg-white/80 p-6 shadow-[0_18px_40px_rgba(58,40,23,0.08)]">
+    <section className="content-card">
       <div>
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#9e4b22]">
-          Upload Progress
-        </p>
-        <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-stone-950">
-          Current batch status
-        </h2>
-        <p className="mt-2 text-sm leading-7 text-stone-600">
+        <p className="section-eyebrow">Upload Progress</p>
+        <h2 className="section-title">Current batch status</h2>
+        <p className="section-copy">
           Track staged imports while files upload, validate, and prepare for
           processing jobs.
         </p>
       </div>
 
-      <div className="mt-6 space-y-4">
+      <div className="mt-6 stack-list">
         {jobs.map((job) => (
-          <article
-            key={job.label}
-            className="rounded-[24px] border border-[rgba(86,67,43,0.12)] bg-[rgba(255,250,243,0.72)] p-4"
-          >
+          <article key={job.label} className="list-item-card">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h3 className="text-base font-semibold text-stone-950">

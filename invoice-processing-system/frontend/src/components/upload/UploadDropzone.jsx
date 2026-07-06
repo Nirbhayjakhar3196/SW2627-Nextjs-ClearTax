@@ -19,18 +19,14 @@ export default function UploadDropzone() {
   };
 
   return (
-    <section className="rounded-[28px] border border-[rgba(86,67,43,0.14)] bg-white/80 p-6 shadow-[0_18px_40px_rgba(58,40,23,0.08)]">
+    <section className="content-card">
       <div className="flex items-center gap-3">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[rgba(199,99,47,0.12)] text-[#9e4b22]">
+        <div className="feature-icon">
           <FileUp className="h-5 w-5" />
         </div>
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#9e4b22]">
-            File Intake
-          </p>
-          <h2 className="mt-1 text-2xl font-semibold tracking-[-0.04em] text-stone-950">
-            Upload invoice batches
-          </h2>
+          <p className="section-eyebrow">File Intake</p>
+          <h2 className="section-title">Upload invoice batches</h2>
         </div>
       </div>
 
@@ -62,13 +58,13 @@ export default function UploadDropzone() {
           <button
             type="button"
             onClick={handlePick}
-            className="rounded-full bg-[#c7632f] px-5 py-3 text-sm font-semibold text-[#fff7f0] transition hover:translate-y-[-1px]"
+            className="primary-action"
           >
             Select File
           </button>
           <button
             type="button"
-            className="rounded-full border border-[rgba(86,67,43,0.14)] bg-white/60 px-5 py-3 text-sm font-semibold text-stone-800 transition hover:translate-y-[-1px]"
+            className="secondary-action"
           >
             Use Sample Template
           </button>

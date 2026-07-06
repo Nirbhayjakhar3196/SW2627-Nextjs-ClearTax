@@ -42,65 +42,57 @@ const statCards = [
 
 export default function DashboardPage() {
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(199,99,47,0.12),_transparent_28%),linear-gradient(180deg,_#fbf5ea_0%,_#f4efe5_100%)] px-4 py-6 text-stone-900 md:px-8 lg:px-12">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
-        <section className="overflow-hidden rounded-[32px] border border-[rgba(86,67,43,0.14)] bg-[linear-gradient(140deg,rgba(255,255,255,0.88),rgba(255,244,230,0.68))] p-6 shadow-[0_24px_60px_rgba(65,44,23,0.12)] md:p-8">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-3xl">
-              <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-[#9e4b22]">
-                Dashboard Overview
-              </p>
-              <h1 className="max-w-3xl text-4xl font-semibold tracking-[-0.05em] text-stone-950 md:text-6xl">
+    <main className="app-page page-shell--warm">
+      <div className="page-shell">
+        <section className="hero-panel surface-panel surface-panel--hero panel-padding">
+          <div className="hero-layout">
+            <div className="hero-split">
+              <div className="hero-content">
+                <p className="eyebrow">Dashboard Overview</p>
+                <h1 className="hero-title">
                 Keep invoice operations visible before they become blockers.
-              </h1>
-              <p className="mt-4 max-w-2xl text-sm leading-7 text-stone-600 md:text-base">
-                Today&apos;s dashboard brings together throughput, accuracy,
-                pending reviews, and recent job movement so we can spot issues
-                early and keep the processing pipeline moving.
-              </p>
+                </h1>
+                <p className="hero-copy">
+                  Today&apos;s dashboard brings together throughput, accuracy,
+                  pending reviews, and recent job movement so we can spot issues
+                  early and keep the processing pipeline moving.
+                </p>
+              </div>
+
+              <div className="metric-board">
+                <div className="metric-item">
+                  <p className="metric-label">Live Queue</p>
+                  <p className="metric-value">128</p>
+                </div>
+                <div className="metric-item">
+                  <p className="metric-label">SLA Risk</p>
+                  <p className="metric-value metric-value--accent">07 Jobs</p>
+                </div>
+                <div className="metric-item">
+                  <p className="metric-label">Manual Review</p>
+                  <p className="metric-value">24</p>
+                </div>
+                <div className="metric-item">
+                  <p className="metric-label">Team Load</p>
+                  <p className="metric-value">82%</p>
+                </div>
+              </div>
             </div>
 
-            <div className="grid min-w-full grid-cols-2 gap-3 rounded-[24px] border border-[rgba(86,67,43,0.12)] bg-white/65 p-4 text-sm text-stone-600 md:min-w-[320px]">
-              <div>
-                <p className="text-xs uppercase tracking-[0.16em] text-stone-500">
-                  Live Queue
-                </p>
-                <p className="mt-1 text-2xl font-semibold text-stone-950">128</p>
-              </div>
-              <div>
-                <p className="text-xs uppercase tracking-[0.16em] text-stone-500">
-                  SLA Risk
-                </p>
-                <p className="mt-1 text-2xl font-semibold text-[#c7632f]">07 Jobs</p>
-              </div>
-              <div>
-                <p className="text-xs uppercase tracking-[0.16em] text-stone-500">
-                  Manual Review
-                </p>
-                <p className="mt-1 text-2xl font-semibold text-stone-950">24</p>
-              </div>
-              <div>
-                <p className="text-xs uppercase tracking-[0.16em] text-stone-500">
-                  Team Load
-                </p>
-                <p className="mt-1 text-2xl font-semibold text-stone-950">82%</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-6 flex flex-wrap gap-3">
+            <div className="action-row">
             <Link
               href="/upload"
-              className="rounded-full bg-[#c7632f] px-5 py-3 text-sm font-semibold text-[#fff7f0] transition hover:translate-y-[-1px]"
+                className="primary-action"
             >
               Upload New Batch
             </Link>
             <Link
               href="/jobs"
-              className="rounded-full border border-[rgba(86,67,43,0.14)] bg-white/60 px-5 py-3 text-sm font-semibold text-stone-800 transition hover:translate-y-[-1px]"
+                className="secondary-action"
             >
               Review Jobs
             </Link>
+          </div>
           </div>
         </section>
 
