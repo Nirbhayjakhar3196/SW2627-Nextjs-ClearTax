@@ -1,29 +1,36 @@
 const multer = require('multer');
+const fs = require('fs');
 const path = require('path');
 
-const storage = multer.diskStorage({
+const uploadDir = path.resolve(__dirname, '../../uploads');
 
-    destination: (req,res,cb) => {
-        cb(null ,'uploads/')
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+    destination: (req,file,cb) => {
+        cb(null, uploadDir);
     },
 
-    filename : (req,res,cb) => {
-        const uniqueName = `${Date.now()}-${file.originalname}`;
-        cb(null,uniqueName)
+    filename : (req,file,cb) => {
+        const safeName = file.originalname.replace(/\s+/g, '_');
+        const uniqueName = `${Date.now()}-${safeName}`;
+        cb(null, uniqueName);
     }
 })
 
 
-const fileFilter = (req , res , cb) => {
-
+const fileFilter = (req , file, cb) => {
     const allowedTypes = [".csv"];
+    const allowedMimeTypes = ['text/csv', 'application/vnd.ms-excel'];
     const extension = path.extname(file.originalname).toLowerCase();
 
-    if(allowedTypes.includes(extension)){
-        cb(null , true);
+    if(allowedTypes.includes(extension) || allowedMimeTypes.includes(file.mimetype)){
+        cb(null, true);
     }
     else{
-        cb(new Error("Only csv file Allowed") , false)
+        cb(new Error("Only CSV files are allowed"), false);
     }
 }
 
@@ -35,4 +42,4 @@ const upload = multer({
     }
 })
 
-module.exports = upload
+module.exports = upload;
