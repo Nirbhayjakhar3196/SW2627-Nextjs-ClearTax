@@ -14,17 +14,4 @@ app.get('/health' , (req,res) => {
     })
 })
 
-app.use((err, req, res, next) => {
-    if (err) {
-        const statusCode = err.code === 'LIMIT_FILE_SIZE' ? 413 : 400;
-
-        return res.status(statusCode).json({
-            success: false,
-            message: err.message || 'Upload failed',
-        });
-    }
-
-    next();
-});
-
 module.exports = app;
