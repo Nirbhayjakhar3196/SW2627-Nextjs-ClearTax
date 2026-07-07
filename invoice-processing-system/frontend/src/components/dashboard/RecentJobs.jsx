@@ -57,34 +57,24 @@ const statusConfig = {
 
 export default function RecentJobs() {
   return (
-    <section className="rounded-[28px] border border-[rgba(86,67,43,0.14)] bg-white/80 p-6 shadow-[0_18px_40px_rgba(58,40,23,0.08)]">
+    <section className="content-card">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#9e4b22]">
-            Recent Jobs
-          </p>
-          <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-stone-950">
-            Queue activity
-          </h2>
+          <p className="section-eyebrow">Recent Jobs</p>
+          <h2 className="section-title">Queue activity</h2>
         </div>
 
-        <Link
-          href="/jobs"
-          className="rounded-full border border-[rgba(86,67,43,0.14)] px-4 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-50"
-        >
+        <Link href="/jobs" className="secondary-action">
           View all
         </Link>
       </div>
 
-      <div className="mt-6 space-y-3">
+      <div className="mt-6 stack-list">
         {jobs.map((job) => {
           const { icon: Icon, tone } = statusConfig[job.status];
 
           return (
-            <article
-              key={job.id}
-              className="rounded-2xl border border-[rgba(86,67,43,0.1)] bg-[rgba(255,250,243,0.72)] p-4"
-            >
+            <article key={job.id} className="list-item-card">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-sm font-semibold text-stone-950">{job.company}</p>

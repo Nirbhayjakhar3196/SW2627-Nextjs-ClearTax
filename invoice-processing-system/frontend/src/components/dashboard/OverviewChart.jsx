@@ -22,29 +22,25 @@ const overviewData = [
 
 export default function OverviewChart() {
   return (
-    <section className="rounded-[28px] border border-[rgba(86,67,43,0.14)] bg-white/80 p-6 shadow-[0_18px_40px_rgba(58,40,23,0.08)]">
+    <section className="content-card">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#9e4b22]">
-            Throughput Overview
-          </p>
-          <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-stone-950">
-            Processed vs flagged invoices
-          </h2>
-          <p className="mt-2 max-w-2xl text-sm leading-7 text-stone-500">
+          <p className="section-eyebrow">Throughput Overview</p>
+          <h2 className="section-title">Processed vs flagged invoices</h2>
+          <p className="section-copy max-w-2xl">
             A weekly trend of total processed invoices alongside the volume that
             needed manual validation or exception review.
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 text-sm">
-          <div className="rounded-2xl border border-[rgba(86,67,43,0.12)] bg-[rgba(255,250,243,0.72)] px-4 py-3">
-            <p className="text-stone-500">Processed</p>
-            <p className="mt-1 text-2xl font-semibold text-stone-950">3,075</p>
+        <div className="mini-metrics text-sm">
+          <div className="mini-metric">
+            <p className="mini-metric-label">Processed</p>
+            <p className="mini-metric-value">3,075</p>
           </div>
-          <div className="rounded-2xl border border-[rgba(86,67,43,0.12)] bg-[rgba(255,250,243,0.72)] px-4 py-3">
-            <p className="text-stone-500">Flagged</p>
-            <p className="mt-1 text-2xl font-semibold text-stone-950">164</p>
+          <div className="mini-metric">
+            <p className="mini-metric-label">Flagged</p>
+            <p className="mini-metric-value">164</p>
           </div>
         </div>
       </div>

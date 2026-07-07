@@ -14,7 +14,7 @@ export default function StatCard({
       : "bg-rose-50 text-rose-700";
 
   return (
-    <article className="rounded-[24px] border border-[rgba(86,67,43,0.14)] bg-[rgba(255,250,243,0.88)] p-5 shadow-[0_18px_40px_rgba(58,40,23,0.08)]">
+    <article className="surface-panel surface-panel--soft p-5">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-sm font-medium text-stone-500">{title}</p>
@@ -23,7 +23,7 @@ export default function StatCard({
           </p>
         </div>
 
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[rgba(199,99,47,0.12)] text-[#9e4b22]">
+        <div className="feature-icon">
           {Icon ? <Icon className="h-5 w-5" /> : null}
         </div>
       </div>

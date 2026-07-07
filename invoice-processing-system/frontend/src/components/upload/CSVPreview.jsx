@@ -6,29 +6,25 @@ const statusTone = {
 
 export default function CSVPreview({ rows = [] }) {
   return (
-    <section className="rounded-[28px] border border-[rgba(86,67,43,0.14)] bg-white/80 p-6 shadow-[0_18px_40px_rgba(58,40,23,0.08)]">
+    <section className="content-card">
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#9e4b22]">
-            CSV Preview
-          </p>
-          <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-stone-950">
-            Parsed rows before import
-          </h2>
-          <p className="mt-2 text-sm leading-7 text-stone-600">
+          <p className="section-eyebrow">CSV Preview</p>
+          <h2 className="section-title">Parsed rows before import</h2>
+          <p className="section-copy">
             Review a sample of parsed invoice rows so date, amount, and vendor
             mapping issues can be caught before batch submission.
           </p>
         </div>
 
-        <div className="flex gap-3 text-sm">
-          <div className="rounded-2xl border border-[rgba(86,67,43,0.12)] bg-[rgba(255,250,243,0.72)] px-4 py-3">
-            <p className="text-stone-500">Rows detected</p>
-            <p className="mt-1 text-2xl font-semibold text-stone-950">418</p>
+        <div className="mini-metrics text-sm">
+          <div className="mini-metric">
+            <p className="mini-metric-label">Rows detected</p>
+            <p className="mini-metric-value">418</p>
           </div>
-          <div className="rounded-2xl border border-[rgba(86,67,43,0.12)] bg-[rgba(255,250,243,0.72)] px-4 py-3">
-            <p className="text-stone-500">Issues found</p>
-            <p className="mt-1 text-2xl font-semibold text-[#c7632f]">11</p>
+          <div className="mini-metric">
+            <p className="mini-metric-label">Issues found</p>
+            <p className="mini-metric-value" style={{ color: "var(--accent)" }}>11</p>
           </div>
         </div>
       </div>
