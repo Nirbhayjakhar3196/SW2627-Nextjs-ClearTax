@@ -11,9 +11,9 @@ const uploadFile = async (req, res) => {
             });
         }
 
-        const uploadBatch = await uploadService.createUpload(req, res);
+        const uploadBatch = await uploadService.createUpload(req.file);
 
-        res.status(200).json({
+        res.status(201).json({
             success: true,
             message: 'File uploaded and processed successfully.',
             uploadBatch: uploadBatch

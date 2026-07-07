@@ -1,18 +1,18 @@
 const UploadBatch = require('../models/UploadBatch')
 
-const createUpload = async(req , res) => {
+const createUpload = async(file) => {
 
-    const uploadBatch = new UploadBatch.create({
+    const uploadBatch = await  UploadBatch.create({
 
-        filename : file.filename,
+        fileName : file.filename,
 
         originalFileName : file.originalname,
 
-        status : "Pending",
+        status : "PENDING",
 
-        TotalRows : 0,
+        totalRows : 0,
 
-        ProcessedRows : 0,
+        processedRows : 0,
 
         successfulRows : 0,
         

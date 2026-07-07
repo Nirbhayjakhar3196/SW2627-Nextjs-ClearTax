@@ -1,0 +1,4 @@
+id,name,email,phone,city
+1,Alice Johnson,alice@example.com,1234567890,New York
+2,Bob Smith,bob@example.com,2345678901,Chicago
+3,Carol Lee,carol@example.com,3456789012,San Francisco
