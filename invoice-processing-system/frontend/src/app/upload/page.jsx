@@ -2,6 +2,7 @@ import Link from "next/link";
 import { FileSpreadsheet, ShieldCheck, UploadCloud, WandSparkles } from "lucide-react";
 
 import CSVPreview from "../../components/upload/CSVPreview";
+import DashboardShell from "../../components/layout/DashboardShell";
 import UploadDropzone from "../../components/upload/UploadDropzone";
 import UploadProgress from "../../components/upload/UploadProgress";
 
@@ -77,8 +78,9 @@ const uploadHighlights = [
 
 export default function UploadPage() {
   return (
-    <main className="app-page page-shell--split">
-      <div className="page-shell">
+    <DashboardShell>
+      <main className="app-page page-shell--split">
+        <div className="page-shell">
         <section className="hero-panel surface-panel surface-panel--hero panel-padding">
           <div className="hero-layout">
             <div className="hero-split">
@@ -172,7 +174,8 @@ export default function UploadPage() {
             </div>
           </div>
         </section>
-      </div>
-    </main>
+        </div>
+      </main>
+    </DashboardShell>
   );
 }

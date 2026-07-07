@@ -29,10 +29,10 @@ export default function CSVPreview({ rows = [] }) {
         </div>
       </div>
 
-      <div className="mt-6 overflow-hidden rounded-[24px] border border-[rgba(86,67,43,0.12)]">
+      <div className="mt-6 overflow-hidden rounded-[24px] border border-[rgba(124,108,242,0.14)]">
         <div className="overflow-x-auto">
           <table className="min-w-full border-collapse">
-            <thead className="bg-[rgba(255,250,243,0.84)] text-left text-xs uppercase tracking-[0.14em] text-stone-500">
+            <thead className="bg-[rgba(247,245,255,0.92)] text-left text-xs uppercase tracking-[0.14em] text-stone-500">
               <tr>
                 <th className="px-4 py-4 font-semibold">Invoice ID</th>
                 <th className="px-4 py-4 font-semibold">Vendor</th>
@@ -45,7 +45,7 @@ export default function CSVPreview({ rows = [] }) {
               {rows.map((row) => (
                 <tr
                   key={row.invoiceId}
-                  className="border-t border-[rgba(86,67,43,0.08)] text-sm text-stone-700"
+                  className="border-t border-[rgba(124,108,242,0.08)] text-sm text-stone-700"
                 >
                   <td className="px-4 py-4 font-semibold text-stone-950">
                     {row.invoiceId}

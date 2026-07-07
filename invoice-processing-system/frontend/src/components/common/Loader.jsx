@@ -1,6 +1,4 @@
-import React from "react";
-
-const Loader = ({ size = "md" }) => {
+export default function Loader({ size = "md" }) {
   const sizes = {
     sm: "w-4 h-4 border-2",
     md: "w-8 h-8 border-4",
@@ -11,13 +9,11 @@ const Loader = ({ size = "md" }) => {
     <div
       className={`
         ${sizes[size]}
-        border-blue-600
+        border-[var(--accent)]
         border-t-transparent
         rounded-full
         animate-spin
       `}
-    ></div>
+    />
   );
-};
-
-export default Loader;
+}

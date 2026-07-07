@@ -1,4 +1,4 @@
-// Placeholder middleware file
-export async function middleware(req) {
-  return;
+// Placeholder middleware file for src-level structure parity.
+export async function middleware() {
+  return undefined;
 }

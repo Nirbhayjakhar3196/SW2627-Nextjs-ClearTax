@@ -4,6 +4,7 @@ import Link from "next/link";
 import OverviewChart from "../../components/dashboard/OverviewChart";
 import RecentJobs from "../../components/dashboard/RecentJobs";
 import StatCard from "../../components/dashboard/StatCard";
+import DashboardShell from "../../components/layout/DashboardShell";
 
 const statCards = [
   {
@@ -38,12 +39,29 @@ const statCards = [
     description: "Detected from flagged mismatches",
     icon: CircleDollarSign,
   },
+  {
+    title: "Pending Reviews",
+    value: "24",
+    change: "-6",
+    trend: "up",
+    description: "Awaiting analyst action",
+    icon: Activity,
+  },
+  {
+    title: "Active Jobs",
+    value: "128",
+    change: "+14",
+    trend: "up",
+    description: "Running across all vendors",
+    icon: FileSpreadsheet,
+  },
 ];
 
 export default function DashboardPage() {
   return (
-    <main className="app-page page-shell--warm">
-      <div className="page-shell">
+    <DashboardShell>
+      <main className="app-page page-shell--warm">
+        <div className="page-shell">
         <section className="hero-panel surface-panel surface-panel--hero panel-padding">
           <div className="hero-layout">
             <div className="hero-split">
@@ -106,7 +124,8 @@ export default function DashboardPage() {
           <OverviewChart />
           <RecentJobs />
         </section>
-      </div>
-    </main>
+        </div>
+      </main>
+    </DashboardShell>
   );
 }

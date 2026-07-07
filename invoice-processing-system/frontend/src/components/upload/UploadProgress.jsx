@@ -1,5 +1,5 @@
 const statusTone = {
-  Uploading: "text-[#315ea8] bg-[rgba(91,141,239,0.12)]",
+  Uploading: "text-[var(--accent-strong)] bg-[rgba(124,108,242,0.12)]",
   Queued: "text-stone-700 bg-stone-100",
   Validated: "text-emerald-700 bg-emerald-50",
 };
@@ -42,9 +42,9 @@ export default function UploadProgress({ jobs = [] }) {
                 <span>Progress</span>
                 <span>{job.progress}%</span>
               </div>
-              <div className="h-2.5 rounded-full bg-[rgba(86,67,43,0.1)]">
+              <div className="h-2.5 rounded-full bg-[rgba(148,163,184,0.14)]">
                 <div
-                  className="h-2.5 rounded-full bg-[linear-gradient(90deg,#315ea8_0%,#c7632f_100%)]"
+                  className="h-2.5 rounded-full bg-[linear-gradient(90deg,#8c7bfd_0%,#5c48dc_100%)]"
                   style={{ width: `${job.progress}%` }}
                 />
               </div>

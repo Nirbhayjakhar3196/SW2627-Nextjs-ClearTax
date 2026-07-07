@@ -1,21 +1,7 @@
-import React from "react";
-
-const Card = ({ children, className = "" }) => {
+export default function JobCard({ children, className = "" }) {
   return (
-    <div
-      className={`
-        bg-white
-        rounded-xl
-        shadow-md
-        p-6
-        border
-        border-gray-200
-        ${className}
-      `}
-    >
+    <div className={`content-card ${className}`}>
       {children}
     </div>
   );
-};
-
-export default Card;
+}

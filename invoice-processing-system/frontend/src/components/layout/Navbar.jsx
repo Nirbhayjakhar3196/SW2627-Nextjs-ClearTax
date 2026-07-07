@@ -1,41 +1,44 @@
 import Link from "next/link";
-import { Bell, Search } from "lucide-react";
+import { Bell } from "lucide-react";
+import { APP_ROUTES } from "../../constants/routes";
 
 const navLinks = [
-  { href: "/", label: "Home" },
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/upload", label: "Upload" },
-  { href: "/jobs", label: "Jobs" },
+  { href: APP_ROUTES.HOME, label: "Home" },
+  { href: "#features", label: "Features" },
+  { href: "#pricing", label: "Pricing" },
+  { href: "#about", label: "About" },
 ];
 
 export default function Navbar() {
   return (
-    <header className="topbar">
-      <div className="topbar__inner">
+    <header className="marketing-nav">
+      <div className="marketing-nav__inner">
         <Link href="/" className="brand-mark">
           <span className="brand-mark__badge">CT</span>
           <span>
-            <strong>ClearTax</strong>
-            <small>Invoice Processing</small>
+            <strong>Bulk Invoice Processing</strong>
+            <small>Enterprise automation</small>
           </span>
         </Link>
 
-        <nav className="topbar__nav" aria-label="Primary navigation">
+        <nav className="marketing-nav__links" aria-label="Primary navigation">
           {navLinks.map((link) => (
-            <Link key={link.href} href={link.href} className="topbar__nav-link">
+            <Link key={link.href} href={link.href} className="marketing-nav__link">
               {link.label}
             </Link>
           ))}
         </nav>
 
-        <div className="topbar__tools">
-          <div className="topbar__search">
-            <Search className="h-4 w-4" />
-            <span>Search invoices</span>
-          </div>
-          <button type="button" className="topbar__icon-button" aria-label="Notifications">
+        <div className="marketing-nav__actions">
+          <Link href={APP_ROUTES.NOTIFICATIONS} className="marketing-nav__icon-button" aria-label="Notifications">
             <Bell className="h-4 w-4" />
-          </button>
+          </Link>
+          <Link href={APP_ROUTES.LOGIN} className="marketing-nav__ghost">
+            Login
+          </Link>
+          <Link href={APP_ROUTES.SIGNUP} className="marketing-nav__cta">
+            Sign Up
+          </Link>
         </div>
       </div>
     </header>

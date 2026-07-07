@@ -30,8 +30,8 @@ export default function UploadDropzone() {
         </div>
       </div>
 
-      <div className="mt-6 rounded-[28px] border-2 border-dashed border-[rgba(86,67,43,0.18)] bg-[linear-gradient(180deg,rgba(255,250,243,0.82),rgba(247,238,226,0.58))] p-8 text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[rgba(199,99,47,0.12)] text-[#9e4b22]">
+      <div className="mt-6 rounded-[28px] border-2 border-dashed border-[rgba(124,108,242,0.18)] bg-[linear-gradient(180deg,rgba(251,250,255,0.96),rgba(244,243,255,0.78))] p-8 text-center">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[rgba(124,108,242,0.12)] text-[var(--accent-strong)]">
           <FolderUp className="h-7 w-7" />
         </div>
 
@@ -47,7 +47,7 @@ export default function UploadDropzone() {
           {acceptedFormats.map((format) => (
             <span
               key={format}
-              className="rounded-full border border-[rgba(86,67,43,0.14)] bg-white/70 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-stone-600"
+              className="rounded-full border border-[rgba(124,108,242,0.12)] bg-white/88 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-stone-600"
             >
               {format}
             </span>
@@ -83,8 +83,8 @@ export default function UploadDropzone() {
         </p>
       </div>
 
-      <div className="mt-5 flex items-start gap-3 rounded-2xl border border-[rgba(86,67,43,0.12)] bg-[rgba(255,250,243,0.72)] p-4">
-        <Sparkles className="mt-0.5 h-5 w-5 text-[#9e4b22]" />
+      <div className="mt-5 flex items-start gap-3 rounded-2xl border border-[rgba(124,108,242,0.12)] bg-[rgba(247,245,255,0.92)] p-4">
+        <Sparkles className="mt-0.5 h-5 w-5 text-[var(--accent-strong)]" />
         <p className="text-sm leading-7 text-stone-600">
           Smart column matching is enabled. If headers differ from the expected
           format, we&apos;ll suggest a mapping before import continues.

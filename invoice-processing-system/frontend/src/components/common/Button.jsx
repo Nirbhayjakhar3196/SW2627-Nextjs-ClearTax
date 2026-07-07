@@ -1,38 +1,27 @@
-import React from "react";
-
-const Button = ({
+export default function Button({
   children,
   variant = "primary",
   loading = false,
   className = "",
   disabled = false,
   ...props
-}) => {
+}) {
   const variants = {
-    primary: "bg-blue-600 hover:bg-blue-700 text-white",
-    secondary: "bg-gray-200 hover:bg-gray-300 text-gray-800",
-    danger: "bg-red-600 hover:bg-red-700 text-white",
+    primary: "primary-action border-none",
+    secondary: "secondary-action",
+    ghost:
+      "inline-flex min-h-[3.25rem] items-center justify-center rounded-full px-5 py-3 font-semibold text-stone-700 transition hover:bg-white/70",
+    danger:
+      "inline-flex min-h-[3.25rem] items-center justify-center rounded-full bg-rose-600 px-5 py-3 font-semibold text-white shadow-[0_12px_24px_rgba(225,29,72,0.18)] transition hover:translate-y-[-1px]",
   };
 
   return (
     <button
-      className={`
-        px-4 py-2
-        rounded-lg
-        font-medium
-        transition
-        duration-200
-        disabled:opacity-50
-        disabled:cursor-not-allowed
-        ${variants[variant]}
-        ${className}
-      `}
+      className={`disabled:cursor-not-allowed disabled:opacity-50 ${variants[variant] || variants.primary} ${className}`}
       disabled={disabled || loading}
       {...props}
     >
       {loading ? "Loading..." : children}
     </button>
   );
-};
-
-export default Button;
+}

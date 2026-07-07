@@ -50,46 +50,46 @@ export default function OverviewChart() {
           <AreaChart data={overviewData} margin={{ top: 10, right: 12, left: -12, bottom: 0 }}>
             <defs>
               <linearGradient id="processedFill" x1="0" x2="0" y1="0" y2="1">
-                <stop offset="5%" stopColor="#c7632f" stopOpacity={0.32} />
-                <stop offset="95%" stopColor="#c7632f" stopOpacity={0.02} />
+                <stop offset="5%" stopColor="#7c6cf2" stopOpacity={0.32} />
+                <stop offset="95%" stopColor="#7c6cf2" stopOpacity={0.04} />
               </linearGradient>
               <linearGradient id="flaggedFill" x1="0" x2="0" y1="0" y2="1">
-                <stop offset="5%" stopColor="#5b8def" stopOpacity={0.26} />
-                <stop offset="95%" stopColor="#5b8def" stopOpacity={0.02} />
+                <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.22} />
+                <stop offset="95%" stopColor="#4f46e5" stopOpacity={0.03} />
               </linearGradient>
             </defs>
 
-            <CartesianGrid vertical={false} stroke="rgba(86,67,43,0.1)" />
+            <CartesianGrid vertical={false} stroke="rgba(148,163,184,0.16)" />
             <XAxis
               axisLine={false}
               dataKey="name"
               tickLine={false}
-              tick={{ fill: "#6b5f55", fontSize: 12 }}
+              tick={{ fill: "#667085", fontSize: 12 }}
             />
             <YAxis
               axisLine={false}
               tickLine={false}
-              tick={{ fill: "#6b5f55", fontSize: 12 }}
+              tick={{ fill: "#667085", fontSize: 12 }}
             />
             <Tooltip
               contentStyle={{
                 borderRadius: "16px",
-                border: "1px solid rgba(86,67,43,0.12)",
-                background: "rgba(255,250,243,0.96)",
-                boxShadow: "0 18px 40px rgba(58,40,23,0.08)",
+                border: "1px solid rgba(217,222,240,0.95)",
+                background: "rgba(255,255,255,0.97)",
+                boxShadow: "0 18px 40px rgba(15,23,42,0.08)",
               }}
             />
             <Area
               type="monotone"
               dataKey="processed"
-              stroke="#c7632f"
+              stroke="#7c6cf2"
               strokeWidth={3}
               fill="url(#processedFill)"
             />
             <Area
               type="monotone"
               dataKey="flagged"
-              stroke="#5b8def"
+              stroke="#4f46e5"
               strokeWidth={2.5}
               fill="url(#flaggedFill)"
             />

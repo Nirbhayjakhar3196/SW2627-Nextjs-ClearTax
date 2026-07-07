@@ -11,3 +11,16 @@ export const MATCH_STATUS = {
   MISMATCHED: "Mismatched",
   PROCESSING: "Processing",
 };
+
+export const JOB_STATUS = {
+  COMPLETED: "Completed",
+  REVIEW: "Review",
+  PROCESSING: "Processing",
+  QUEUED: "Queued",
+};
+
+export const REPORT_STATUS = {
+  READY: "Ready",
+  SHARED: "Shared",
+  DRAFT: "Draft",
+};

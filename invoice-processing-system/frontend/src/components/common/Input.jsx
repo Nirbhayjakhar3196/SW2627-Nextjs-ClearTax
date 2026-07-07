@@ -1,46 +1,27 @@
-import React from "react";
-
-const Input = ({
+export default function Input({
   label,
   error,
   className = "",
   ...props
-}) => {
+}) {
   return (
     <div className="w-full">
-      {/* Label */}
       {label && (
-        <label className="block mb-2 text-sm font-medium text-gray-700">
+        <label className="mb-2 block font-sans text-sm font-medium text-stone-700">
           {label}
         </label>
       )}
 
-      {/* Input Field */}
       <input
-        className={`
-          w-full
-          px-4
-          py-2
-          border
-          rounded-lg
-          outline-none
-          focus:ring-2
-          focus:ring-blue-500
-          focus:border-blue-500
-          ${error ? "border-red-500" : "border-gray-300"}
-          ${className}
-        `}
+        className={`w-full rounded-2xl border bg-white/88 px-4 py-3 font-sans text-sm text-stone-900 outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[rgba(124,108,242,0.14)] ${error ? "border-rose-500" : "border-[rgba(148,163,184,0.24)]"} ${className}`}
         {...props}
       />
 
-      {/* Error Message */}
       {error && (
-        <p className="mt-1 text-sm text-red-500">
+        <p className="mt-1 font-sans text-sm text-rose-600">
           {error}
         </p>
       )}
     </div>
   );
-};
-
-export default Input;
+}
