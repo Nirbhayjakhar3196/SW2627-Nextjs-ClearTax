@@ -13,7 +13,7 @@ const createUpload = async(file) => {
 
         status : "PENDING",
 
-        totalRows : 0,
+        totalRows : rows.length,
 
         processedRows : 0,
 
