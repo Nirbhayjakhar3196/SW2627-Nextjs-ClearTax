@@ -16,7 +16,7 @@ export function middleware(request) {
   const isPrivateRoute = PRIVATE_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 
   if (!isAuthenticated && isPrivateRoute) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    return NextResponse.redirect(new URL("/", request.url));
   }
 
   if (isAuthenticated && (pathname === "/login" || pathname === "/signup")) {
@@ -25,3 +25,5 @@ export function middleware(request) {
 
   return NextResponse.next();
 }
+
+

@@ -28,11 +28,10 @@ export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
 
-  const handleLogout = () => {
-    logout();
-    router.push("/login");
-    router.refresh();
-  };
+const handleLogout = () => {
+  logout();
+  window.location.href = "/";
+};
 
   return (
     <aside className="sidebar" aria-label="Workspace navigation">
