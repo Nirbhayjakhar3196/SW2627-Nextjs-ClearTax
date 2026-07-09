@@ -123,7 +123,7 @@
   top: 0;
   z-index: 30;
   padding: 1rem 1rem 0;
-  backdrop-filter: blur(14px);
+  /*backdrop-filter: blur(14px);*/
 }
 
 .marketing-nav__inner {
