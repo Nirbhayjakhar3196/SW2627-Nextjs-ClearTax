@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "human-guidelines": {
+      "source": "heyimjames/human-guidelines",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "2f784c91624b57536315f241a193ebb97b3388f79c9d954fb55eb72a8fe2610b"
+    }
+  }
+}
