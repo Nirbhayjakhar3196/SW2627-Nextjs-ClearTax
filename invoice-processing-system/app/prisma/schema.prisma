@@ -7,3 +7,42 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model UploadBatch{
+
+  id              Int       @id @default(autoincrement())
+  fileName        String    
+  originalName    String  
+
+  status          String    @default("PENDING")
+
+  totalRows       Int       @default(0)
+  processedRows   Int       @default(0)
+  successfulRows  Int       @default(0)
+  failedRows      Int       @default(0)
+
+  invoices        Invoice[]
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+}
+
+
+model Invoice{
+
+  id              Int       @id @default(autoincrement())
+
+  invoiceNumber   String       
+  vendor          String
+  amount          Float
+
+  status          String    @default("PENDING")  
+  errorMessage    String?
+
+  uploadBatchId   Int       
+  uploadBatch     UploadBatch       @relation(fields : [uploadBatchId] , references: [id])
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+}
