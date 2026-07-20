@@ -1,41 +1,57 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowRight, Lock, Mail } from "lucide-react";
-import { useAuthStore } from "../../store/auth.store";
+import { Lock, Mail, ArrowRight } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { useAuthStore } from "@/store/auth.store";
+import axios from "@/lib/axios";
+import Input from "@/components/ui/Input";
+import Button from "@/components/ui/Button";
+
+const loginSchema = z.object({
+  email: z.string().email("Please enter a valid email"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+});
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const setUser = useAuthStore((state) => state.setUser);
+  const setCredentials = useAuthStore((state) => state.setCredentials);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    resolver: zodResolver(loginSchema),
+  });
 
-    // MOCK DATA STANDIN
-    setTimeout(() => {
-      if (email && password) {
-        const currentUser = useAuthStore.getState().user;
-        setUser({ name: currentUser?.name || email.split("@")[0], email });
+  const onSubmit = async (data) => {
+    try {
+      const response = await axios.post("/auth/login", data);
+      if (response.data.success) {
+        setCredentials(response.data.user, response.data.token);
+        toast.success("Welcome back!", {
+          description: "You have been signed in successfully.",
+        });
         router.push("/dashboard");
-      } else {
-        setError("Invalid credentials");
-        setLoading(false);
       }
-    }, 800);
+    } catch (err) {
+      const message =
+        err.response?.data?.message || "Invalid email or password";
+      toast.error("Sign in failed", { description: message });
+      setError("root", { message });
+    }
   };
 
   return (
     <div className="min-h-screen bg-[#fcfcff] flex items-center justify-center p-4">
-      <motion.div 
+      <motion.div
         className="max-w-md w-full glass-card p-10"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -49,55 +65,39 @@ export default function LoginPage() {
           <p className="text-stone-500 mt-3 text-sm">Sign in to manage your bulk invoices</p>
         </div>
 
-        {error && (
+        {errors.root && (
           <div className="mb-4 p-4 rounded-lg bg-red-50 border border-red-100 text-red-600 text-sm">
-            {error}
+            {errors.root.message}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-[13px] font-semibold text-stone-700 uppercase tracking-wider mb-2">Email Address</label>
-            <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-stone-400 group-focus-within:text-[#9670f8] transition-colors">
-                <Mail size={18} />
-              </div>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="block w-full pl-10 pr-3 py-3 border border-stone-200 rounded-xl focus:ring-2 focus:ring-[#9670f8] focus:border-transparent transition-all outline-none text-stone-900 bg-white shadow-sm"
-                placeholder="you@company.com"
-              />
-            </div>
-          </div>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
+          <Input
+            label="Email Address"
+            type="email"
+            icon={Mail}
+            placeholder="you@company.com"
+            error={errors.email?.message}
+            {...register("email")}
+          />
 
-          <div>
-            <label className="block text-[13px] font-semibold text-stone-700 uppercase tracking-wider mb-2">Password</label>
-            <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-stone-400 group-focus-within:text-[#9670f8] transition-colors">
-                <Lock size={18} />
-              </div>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="block w-full pl-10 pr-3 py-3 border border-stone-200 rounded-xl focus:ring-2 focus:ring-[#9670f8] focus:border-transparent transition-all outline-none text-stone-900 bg-white shadow-sm"
-                placeholder="••••••••"
-              />
-            </div>
-          </div>
+          <Input
+            label="Password"
+            type="password"
+            icon={Lock}
+            placeholder="••••••••"
+            error={errors.password?.message}
+            {...register("password")}
+          />
 
-          <button
+          <Button
             type="submit"
-            disabled={loading}
-            className="w-full primary-action mt-8 flex justify-center items-center py-3.5 text-[15px]"
+            loading={isSubmitting}
+            icon={!isSubmitting ? ArrowRight : undefined}
+            className="w-full mt-8"
           >
-            <span>{loading ? "Signing in..." : "Sign in"}</span>
-            {!loading && <ArrowRight size={18} className="ml-2" />}
-          </button>
+            {isSubmitting ? "Signing in..." : "Sign in"}
+          </Button>
         </form>
 
         <p className="mt-8 text-center text-[13px] font-medium text-stone-600">
