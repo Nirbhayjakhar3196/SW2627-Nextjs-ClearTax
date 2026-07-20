@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken";
 
-import { createUser , findUserByEmail } from "@/repositories/user.repository"
+import { createUser , findUserByEmail , findUserById } from "@/repositories/user.repository"
 
 
 export async function signup(userData){
@@ -58,5 +58,15 @@ export async function login(userData){
       role : user.role
     }
   }
+}
 
+export async function getCurrentUser(userId){
+
+  const user = await findUserById(userId)
+
+  if(!user){
+    throw new Error("User not found")
+  }
+
+  return user;
 }
