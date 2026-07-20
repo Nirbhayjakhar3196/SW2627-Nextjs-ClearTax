@@ -2,9 +2,10 @@
 
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { LayoutDashboard, FileSpreadsheet, History, Settings, User, FileText } from "lucide-react";
-import { useAuthStore } from "../../store/auth.store";
+import { LayoutDashboard, FileSpreadsheet, History, Settings, User, FileText, LogOut } from "lucide-react";
+import { useAuthStore } from "@/store/auth.store";
 import { useState, useEffect } from "react";
+
 export default function AppLayout({ children }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -16,9 +17,9 @@ export default function AppLayout({ children }) {
     setMounted(true);
   }, []);
 
-  const displayName = mounted && user?.name ? user.name : "hakuna";
-  const displayEmail = mounted && user?.email ? user.email : "muehehe790@gmail.com";
-  const initial = displayName.charAt(0).toUpperCase();
+  const displayName = mounted && user?.name ? user.name : "";
+  const displayEmail = mounted && user?.email ? user.email : "";
+  const initial = displayName ? displayName.charAt(0).toUpperCase() : "?";
 
   const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -32,7 +33,6 @@ export default function AppLayout({ children }) {
 
   return (
     <div className="min-h-screen bg-white flex font-sans text-stone-900">
-      {/* Sidebar */}
       <div className="w-64 flex flex-col border-r border-gray-100 bg-white z-10 h-screen sticky top-0">
         <div className="h-16 flex items-center px-6 border-b border-gray-100">
           <div className="text-xl font-bold text-[#5a38ef] tracking-tight">ClearTax</div>
@@ -57,31 +57,38 @@ export default function AppLayout({ children }) {
           })}
         </div>
         <div className="p-4 border-t border-gray-100">
-          <div className="flex items-center mb-4 px-2">
-            <div className="w-8 h-8 rounded-full bg-[#f4f2ff] flex items-center justify-center text-[#5a38ef] font-medium text-sm">
-              {initial}
+          {mounted && user ? (
+            <div className="flex items-center mb-4 px-2">
+              <div className="w-8 h-8 rounded-full bg-[#f4f2ff] flex items-center justify-center text-[#5a38ef] font-medium text-sm">
+                {initial}
+              </div>
+              <div className="ml-3 overflow-hidden">
+                <p className="text-sm font-medium text-gray-900 truncate">{displayName}</p>
+                <p className="text-xs text-gray-500 truncate">{displayEmail}</p>
+              </div>
             </div>
-            <div className="ml-3 overflow-hidden">
-              <p className="text-sm font-medium text-gray-900 truncate">{displayName}</p>
-              <p className="text-xs text-gray-500 truncate">{displayEmail}</p>
+          ) : (
+            <div className="flex items-center mb-4 px-2 animate-pulse">
+              <div className="w-8 h-8 rounded-full bg-gray-100" />
+              <div className="ml-3 space-y-1.5 flex-1">
+                <div className="h-3 bg-gray-100 rounded w-20" />
+                <div className="h-2.5 bg-gray-100 rounded w-28" />
+              </div>
             </div>
-          </div>
+          )}
           <button
             onClick={() => {
               clearUser();
               router.push("/");
             }}
-            className="flex items-center text-red-600 hover:text-red-700 transition-colors px-2"
+            className="flex items-center text-red-600 hover:text-red-700 transition-colors px-2 w-full"
           >
-            <div className="w-6 h-6 rounded-full bg-gray-800 text-white flex items-center justify-center text-[10px] mr-2">
-              N
-            </div>
+            <LogOut size={14} className="mr-2" />
             <span className="text-xs font-semibold">Log out</span>
           </button>
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0 bg-white">
         <main className="flex-1 overflow-y-auto p-10">
           <div className="max-w-5xl mx-auto">

@@ -1,41 +1,55 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowRight, User, Mail, Lock } from "lucide-react";
-import { useAuthStore } from "../../store/auth.store";
+import { User, Mail, Lock, ArrowRight } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { toast } from "sonner";
 import { motion } from "framer-motion";
+import axios from "@/lib/axios";
+import Input from "@/components/ui/Input";
+import Button from "@/components/ui/Button";
+
+const signupSchema = z.object({
+  name: z.string().min(3, "Name must be at least 3 characters"),
+  email: z.string().email("Please enter a valid email"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+});
 
 export default function SignupPage() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const setUser = useAuthStore((state) => state.setUser);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    resolver: zodResolver(signupSchema),
+  });
 
-    // MOCK DATA STANDIN
-    setTimeout(() => {
-      if (name && email && password) {
-        setUser({ name, email });
-        router.push("/login");
-      } else {
-        setError("Please fill out all fields");
-        setLoading(false);
+  const onSubmit = async (data) => {
+    try {
+      const response = await axios.post("/auth/signup", data);
+      if (response.data.success) {
+        toast.success("Account created!", {
+          description: "You can now sign in with your credentials.",
+        });
+        router.push("/login?registered=true");
       }
-    }, 800);
+    } catch (err) {
+      const message =
+        err.response?.data?.message || "An error occurred during signup";
+      toast.error("Signup failed", { description: message });
+      setError("root", { message });
+    }
   };
 
   return (
     <div className="min-h-screen bg-[#fcfcff] flex items-center justify-center p-4">
-      <motion.div 
+      <motion.div
         className="max-w-md w-full glass-card p-10"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -49,72 +63,48 @@ export default function SignupPage() {
           <p className="text-stone-500 mt-3 text-sm">Get started with ClearTax Invoice Processing</p>
         </div>
 
-        {error && (
+        {errors.root && (
           <div className="mb-4 p-4 rounded-lg bg-red-50 border border-red-100 text-red-600 text-sm">
-            {error}
+            {errors.root.message}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-[13px] font-semibold text-stone-700 uppercase tracking-wider mb-2">Full Name</label>
-            <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-stone-400 group-focus-within:text-[#9670f8] transition-colors">
-                <User size={18} />
-              </div>
-              <input
-                type="text"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="block w-full pl-10 pr-3 py-3 border border-stone-200 rounded-xl focus:ring-2 focus:ring-[#9670f8] focus:border-transparent transition-all outline-none text-stone-900 bg-white shadow-sm"
-                placeholder="John Doe"
-              />
-            </div>
-          </div>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
+          <Input
+            label="Full Name"
+            type="text"
+            icon={User}
+            placeholder="John Doe"
+            error={errors.name?.message}
+            {...register("name")}
+          />
 
-          <div>
-            <label className="block text-[13px] font-semibold text-stone-700 uppercase tracking-wider mb-2">Email Address</label>
-            <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-stone-400 group-focus-within:text-[#9670f8] transition-colors">
-                <Mail size={18} />
-              </div>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="block w-full pl-10 pr-3 py-3 border border-stone-200 rounded-xl focus:ring-2 focus:ring-[#9670f8] focus:border-transparent transition-all outline-none text-stone-900 bg-white shadow-sm"
-                placeholder="you@company.com"
-              />
-            </div>
-          </div>
+          <Input
+            label="Email Address"
+            type="email"
+            icon={Mail}
+            placeholder="you@company.com"
+            error={errors.email?.message}
+            {...register("email")}
+          />
 
-          <div>
-            <label className="block text-[13px] font-semibold text-stone-700 uppercase tracking-wider mb-2">Password</label>
-            <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-stone-400 group-focus-within:text-[#9670f8] transition-colors">
-                <Lock size={18} />
-              </div>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="block w-full pl-10 pr-3 py-3 border border-stone-200 rounded-xl focus:ring-2 focus:ring-[#9670f8] focus:border-transparent transition-all outline-none text-stone-900 bg-white shadow-sm"
-                placeholder="••••••••"
-              />
-            </div>
-          </div>
+          <Input
+            label="Password"
+            type="password"
+            icon={Lock}
+            placeholder="••••••••"
+            error={errors.password?.message}
+            {...register("password")}
+          />
 
-          <button
+          <Button
             type="submit"
-            disabled={loading}
-            className="w-full primary-action mt-8 flex justify-center items-center py-3.5 text-[15px]"
+            loading={isSubmitting}
+            icon={!isSubmitting ? ArrowRight : undefined}
+            className="w-full mt-8"
           >
-            <span>{loading ? "Creating account..." : "Sign up"}</span>
-            {!loading && <ArrowRight size={18} className="ml-2" />}
-          </button>
+            {isSubmitting ? "Creating account..." : "Sign up"}
+          </Button>
         </form>
 
         <p className="mt-8 text-center text-[13px] font-medium text-stone-600">
