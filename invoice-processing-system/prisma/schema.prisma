@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum UploadStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum InvoiceStatus {
+  PENDING
+  MATCHED
+  MISMATCHED
+  FAILED
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(USER)
+
+  uploads   UploadBatch[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model UploadBatch {
+  id               Int          @id @default(autoincrement())
+
+  fileName         String
+  originalFileName String
+
+  status           UploadStatus @default(PENDING)
+
+  totalRows        Int @default(0)
+  processedRows    Int @default(0)
+  successfulRows   Int @default(0)
+  failedRows       Int @default(0)
+
+  userId           Int
+  user             User @relation(fields: [userId], references: [id])
+
+  invoices         Invoice[]
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model Invoice {
+  id            Int            @id @default(autoincrement())
+
+  invoiceNumber String
+  vendor        String
+  amount        Float
+
+  status        InvoiceStatus @default(PENDING)
+  errorMessage  String?
+
+  uploadBatchId Int
+  uploadBatch   UploadBatch @relation(fields: [uploadBatchId], references: [id])
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
