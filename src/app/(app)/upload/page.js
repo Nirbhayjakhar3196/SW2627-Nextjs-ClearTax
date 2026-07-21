@@ -4,6 +4,7 @@ import { useState } from "react";
 import { UploadCloud, File, AlertCircle, CheckCircle2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { useAuthStore } from "@/store/auth.store";
 
 export default function UploadPage() {
   const [files, setFiles] = useState([]);
@@ -13,6 +14,7 @@ export default function UploadPage() {
   const [successMessage, setSuccessMessage] = useState(null);
   const [uploadResult, setUploadResult] = useState(null);
   const router = useRouter();
+  const token = useAuthStore((state) => state.token);
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -71,13 +73,18 @@ export default function UploadPage() {
     setSuccessMessage(null);
 
     try {
-      // Flow: Frontend -> multipart/form-data -> API Route -> Service -> Repository -> DB
       for (const file of files) {
         const formData = new FormData();
         formData.append("file", file);
 
+        const headers = {};
+        if (token) {
+          headers["Authorization"] = `Bearer ${token}`;
+        }
+
         const response = await fetch("/api/upload", {
           method: "POST",
+          headers,
           body: formData,
         });
 

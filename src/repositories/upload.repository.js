@@ -17,6 +17,16 @@ export async function createUploadBatch(data) {
       failedRows: 0,
       userId: userId ? parseInt(userId) : null,
     },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+        },
+      },
+    },
   });
 }
 
@@ -59,21 +69,41 @@ export async function createUploadBatchWithInvoices(batchData, invoices = []) {
 }
 
 /**
- * Retrieves an UploadBatch by ID with its invoices.
+ * Retrieves an UploadBatch by ID with its invoices and user.
  */
 export async function getUploadBatchById(id) {
   return await prisma.uploadBatch.findUnique({
     where: { id: parseInt(id) },
-    include: { invoices: true },
+    include: {
+      invoices: true,
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+        },
+      },
+    },
   });
 }
 
 /**
- * Retrieves all UploadBatches.
+ * Retrieves all UploadBatches with invoices and associated user details.
  */
 export async function getAllUploadBatches() {
   return await prisma.uploadBatch.findMany({
     orderBy: { createdAt: "desc" },
-    include: { invoices: true },
+    include: {
+      invoices: true,
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+        },
+      },
+    },
   });
 }

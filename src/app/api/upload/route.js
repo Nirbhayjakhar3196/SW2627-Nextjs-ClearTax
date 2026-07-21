@@ -1,16 +1,59 @@
 import { NextResponse } from "next/server";
+import jwt from "jsonwebtoken";
 import uploadService from "../../../services/upload.service.js";
 
 export async function POST(request) {
   try {
-    // 1. Parse incoming multipart/form-data request
-    const formData = await request.formData();
+    // 1. Authorization Header Check
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Unauthorized: Missing token",
+        },
+        { status: 401 }
+      );
+    }
 
-    // 2. Retrieve File Object from formData (checks "file" or first File object in entries)
+    const token = authHeader.split(" ")[1];
+    let decoded;
+
+    try {
+      decoded = jwt.verify(
+        token,
+        process.env.JWT_SECRET || "super_secret_key_change_this_in_production"
+      );
+    } catch (err) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Unauthorized: Invalid or expired token",
+        },
+        { status: 401 }
+      );
+    }
+
+    const userId = decoded?.id || null;
+
+    // 2. Parse incoming multipart/form-data request
+    let formData;
+    try {
+      formData = await request.formData();
+    } catch (err) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Invalid form-data payload",
+        },
+        { status: 400 }
+      );
+    }
+
+    // 3. Retrieve File Object from formData
     let file = formData.get("file");
 
     if (!file || !(file instanceof File)) {
-      // Fallback: look for any entry that is a File instance
       for (const [, value] of formData.entries()) {
         if (value && typeof value === "object" && typeof value.text === "function") {
           file = value;
@@ -23,19 +66,50 @@ export async function POST(request) {
       return NextResponse.json(
         {
           success: false,
-          message: "No valid file found in request. Please send multipart/form-data with a file field named 'file'.",
+          message: "No valid file found in request. Please upload a file.",
         },
         { status: 400 }
       );
     }
 
-    // Optional userId from form data if provided
-    const userId = formData.get("userId") || null;
+    // 4. File Extension & CSV Validation
+    const fileName = file.name || "";
+    if (!fileName.toLowerCase().endsWith(".csv") && file.type && !file.type.includes("csv")) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Invalid file format. Only CSV files are allowed.",
+        },
+        { status: 400 }
+      );
+    }
 
-    // 3. Delegate File Object processing to Service Layer
+    // 5. Check Empty File Content
+    const content = await file.text();
+    if (!content || content.trim().length === 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "CSV file is empty",
+        },
+        { status: 400 }
+      );
+    }
+
+    // 6. Delegate Processing to Service Layer
     const result = await uploadService.processFileUpload(file, userId);
 
-    // 4. Return success response to Frontend / Client
+    if (!result.batch || result.batch.totalRows === 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "CSV file contains no valid data rows",
+        },
+        { status: 400 }
+      );
+    }
+
+    // 7. Return 201 Created Response
     return NextResponse.json(
       {
         success: true,
@@ -56,8 +130,35 @@ export async function POST(request) {
   }
 }
 
-export async function GET() {
+export async function GET(request) {
   try {
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Unauthorized: Missing token",
+        },
+        { status: 401 }
+      );
+    }
+
+    const token = authHeader.split(" ")[1];
+    try {
+      jwt.verify(
+        token,
+        process.env.JWT_SECRET || "super_secret_key_change_this_in_production"
+      );
+    } catch (err) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Unauthorized: Invalid or expired token",
+        },
+        { status: 401 }
+      );
+    }
+
     const uploads = await uploadService.getAllUploads();
     return NextResponse.json({ success: true, data: uploads });
   } catch (error) {
