@@ -53,8 +53,8 @@ model UploadBatch {
   successfulRows   Int @default(0)
   failedRows       Int @default(0)
 
-  userId           Int
-  user             User @relation(fields: [userId], references: [id])
+  userId           Int?
+  user             User? @relation(fields: [userId], references: [id])
 
   invoices         Invoice[]
 

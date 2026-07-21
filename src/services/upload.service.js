@@ -1,74 +1,93 @@
-// Mock invoice data
-const mockInvoices = [
-  {
-    id: "INV-001",
-    customer: "Amazon India",
-    amount: 25430,
-    status: "Matched",
-    error: "",
-  },
-  {
-    id: "INV-002",
-    customer: "Flipkart Pvt Ltd",
-    amount: 18250,
-    status: "Mismatched",
-    error: "GSTIN Missing",
-  },
-  {
-    id: "INV-003",
-    customer: "Reliance Retail",
-    amount: 32100,
-    status: "Matched",
-    error: "",
-  },
-  {
-    id: "INV-004",
-    customer: "Tata Motors",
-    amount: 15750,
-    status: "Processing",
-    error: "",
-  },
-];
+import Papa from "papaparse";
+import {
+  createUploadBatchWithInvoices,
+  getUploadBatchById,
+  getAllUploadBatches,
+} from "../repositories/upload.repository.js";
 
 const uploadService = {
-  uploadCSV(file) {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        if (!file) {
-          reject({
-            success: false,
-            message: "No file selected.",
-          });
-          return;
-        }
+  /**
+   * Processes a File Object received from request.formData()
+   * @param {File} file - Standard Web API File object
+   * @param {number|string|null} userId - Optional User ID
+   */
+  async processFileUpload(file, userId = null) {
+    if (!file || typeof file.text !== "function") {
+      throw new Error("Invalid file object provided. Expected standard File object.");
+    }
 
-        resolve({
-          success: true,
-          uploadId: "UPLOAD_12345",
-          message: "CSV uploaded successfully.",
-        });
-      }, 1500);
-    });
+    const originalFileName = file.name;
+    const fileName = `${Date.now()}_${originalFileName}`;
+    const fileText = await file.text();
+
+    let parsedInvoices = [];
+
+    if (fileText && fileText.trim().length > 0) {
+      const parseResult = Papa.parse(fileText, {
+        header: true,
+        skipEmptyLines: true,
+        transformHeader: (header) => header.trim(),
+      });
+
+      if (parseResult.data && parseResult.data.length > 0) {
+        parsedInvoices = parseResult.data.map((row, index) => ({
+          invoiceNumber:
+            row.invoiceNumber ||
+            row["Invoice Number"] ||
+            row.id ||
+            row.ID ||
+            `INV-${1000 + index}`,
+          vendor:
+            row.vendor ||
+            row.Vendor ||
+            row.customer ||
+            row.Customer ||
+            row.supplier ||
+            "Default Vendor",
+          amount:
+            parseFloat(
+              row.amount || row.Amount || row.price || row.Price || 0
+            ) || 0,
+          status: row.status || row.Status || "MATCHED",
+          error: row.error || row.Error || null,
+        }));
+      }
+    }
+
+    // Call Repository to store in PostgreSQL database
+    const batchResult = await createUploadBatchWithInvoices(
+      {
+        fileName,
+        originalFileName,
+        totalRows: parsedInvoices.length,
+        userId,
+      },
+      parsedInvoices
+    );
+
+    return {
+      success: true,
+      message: "File uploaded and processed successfully",
+      batch: batchResult,
+    };
   },
 
-  getUploadStatus(uploadId) {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({
-          uploadId,
-          progress: 75,
-          status: "Processing",
-        });
-      }, 1000);
-    });
+  async getUploadStatus(uploadId) {
+    const batch = await getUploadBatchById(uploadId);
+    if (!batch) {
+      throw new Error("Upload batch not found");
+    }
+    return {
+      uploadId: batch.id,
+      fileName: batch.originalFileName,
+      status: batch.status,
+      totalRows: batch.totalRows,
+      invoices: batch.invoices,
+    };
   },
 
-  getInvoices() {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve(mockInvoices);
-      }, 1000);
-    });
+  async getAllUploads() {
+    return await getAllUploadBatches();
   },
 };
 
