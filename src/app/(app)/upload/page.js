@@ -115,22 +115,22 @@ export default function UploadPage() {
       variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
     >
       <motion.div variants={{ hidden: { opacity: 0, y: 15 }, visible: { opacity: 1, y: 0 } }}>
-        <h1 className="text-2xl font-bold tracking-tight text-stone-900">Upload Invoices</h1>
-        <p className="text-stone-500 mt-1 text-sm">
+        <h1 className="text-3xl font-extrabold tracking-tight text-stone-900 font-outfit">Upload Invoices</h1>
+        <p className="text-stone-500 mt-1 text-sm font-sans">
           Upload CSV files for complete end-to-end processing into PostgreSQL database.
         </p>
       </motion.div>
 
       {error && (
-        <div className="p-4 rounded-lg bg-amber-50 border border-amber-100 flex items-start text-amber-700">
-          <AlertCircle size={20} className="mr-3 mt-0.5 shrink-0" />
+        <div className="p-4 rounded-xl bg-amber-50/50 border border-amber-100/50 flex items-start text-amber-700 backdrop-blur-sm">
+          <AlertCircle size={20} className="mr-3 mt-0.5 shrink-0 text-amber-600" />
           <p className="text-sm font-medium">{error}</p>
         </div>
       )}
 
       {successMessage && (
-        <div className="p-4 rounded-lg bg-emerald-50 border border-emerald-100 flex items-start text-emerald-700">
-          <CheckCircle2 size={20} className="mr-3 mt-0.5 shrink-0" />
+        <div className="p-4 rounded-xl bg-emerald-50/50 border border-emerald-100/50 flex items-start text-emerald-700 backdrop-blur-sm">
+          <CheckCircle2 size={20} className="mr-3 mt-0.5 shrink-0 text-emerald-600" />
           <div>
             <p className="text-sm font-medium">{successMessage}</p>
             {uploadResult?.batch && (
@@ -144,19 +144,19 @@ export default function UploadPage() {
 
       <motion.div variants={{ hidden: { opacity: 0, y: 15 }, visible: { opacity: 1, y: 0 } }}>
         <div
-          className={`border-2 border-dashed rounded-3xl p-12 text-center transition-all ${
+          className={`border-2 border-dashed rounded-3xl p-12 text-center transition-all duration-300 relative overflow-hidden ${
             isDragging
-              ? "border-[#9670f8] bg-[#f7f5ff]"
-              : "border-stone-200 glass-card hover:bg-white/80 hover:border-stone-300"
+              ? "border-[#5a38ef] bg-[#5a38ef]/5 shadow-inner scale-[0.99]"
+              : "border-stone-200 bg-white hover:bg-white/80 hover:border-[#5a38ef]/20 hover:shadow-md shadow-sm"
           }`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         >
-          <div className="mx-auto w-20 h-20 bg-[#f7f5ff] text-[#9670f8] rounded-full flex items-center justify-center mb-6 shadow-sm">
+          <div className="mx-auto w-20 h-20 bg-[#5a38ef]/5 text-[#5a38ef] rounded-2xl flex items-center justify-center mb-6 shadow-sm border border-[#5a38ef]/10">
             <UploadCloud size={32} />
           </div>
-          <h3 className="text-xl font-semibold text-stone-900 mb-2 tracking-tight">
+          <h3 className="text-xl font-bold text-stone-900 mb-2 tracking-tight font-outfit">
             Drag & Drop CSV files here
           </h3>
           <p className="text-stone-500 mb-8 max-w-sm mx-auto leading-relaxed text-sm">
@@ -185,7 +185,7 @@ export default function UploadPage() {
           className="glass-card p-6"
         >
           <div className="flex items-center justify-between mb-6">
-            <h3 className="font-semibold text-stone-900">
+            <h3 className="font-bold text-stone-900 font-outfit">
               {files.length} File{files.length !== 1 && "s"} Selected
             </h3>
             <button
@@ -213,15 +213,15 @@ export default function UploadPage() {
             {files.map((f, i) => (
               <div
                 key={i}
-                className="flex items-center justify-between p-4 rounded-xl bg-[rgba(247,245,255,0.5)] border border-white/40 hover:bg-white/80 transition-colors group"
+                className="flex items-center justify-between p-4 rounded-xl bg-stone-50/50 border border-stone-100 hover:border-[#5a38ef]/10 hover:bg-white/80 transition-all duration-300 group shadow-sm"
               >
                 <div className="flex items-center">
                   <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center mr-4 shrink-0 shadow-sm group-hover:scale-105 transition-transform">
                     <File size={20} />
                   </div>
                   <div>
-                    <p className="text-[13px] font-semibold text-stone-900 line-clamp-1">{f.name}</p>
-                    <p className="text-[11px] font-medium text-stone-500 uppercase tracking-wide">
+                    <p className="text-[13px] font-bold text-stone-900 line-clamp-1">{f.name}</p>
+                    <p className="text-[11px] font-semibold text-stone-400 uppercase tracking-wide">
                       {(f.size / 1024).toFixed(2)} KB
                     </p>
                   </div>

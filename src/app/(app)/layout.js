@@ -5,6 +5,7 @@ import Link from "next/link";
 import { LayoutDashboard, FileSpreadsheet, History, Settings, User, FileText, LogOut, ChevronDown } from "lucide-react";
 import { useAuthStore } from "@/store/auth.store";
 import { useState, useEffect, useRef } from "react";
+import { motion } from "framer-motion";
 
 export default function AppLayout({ children }) {
   const router = useRouter();
@@ -48,56 +49,64 @@ export default function AppLayout({ children }) {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50/20 flex font-sans text-stone-900">
+    <div className="min-h-screen bg-[#faf9ff] flex font-sans text-stone-900">
       {/* Sidebar */}
-      <div className="w-64 flex flex-col border-r border-gray-100 bg-white z-10 h-screen sticky top-0">
-        <div className="h-16 flex items-center px-6 border-b border-gray-100">
-          <div className="text-xl font-bold text-[#5a38ef] tracking-tight">ClearTax</div>
+      <div className="w-64 flex flex-col border-r border-[#5a38ef]/5 bg-white z-10 h-screen sticky top-0 shadow-sm">
+        <div className="h-16 flex items-center px-6 gap-3 border-b border-stone-50">
+          <span className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#5a38ef] to-[#ff8c70] text-white flex items-center justify-center font-bold text-sm shadow-md shadow-indigo-500/10">CT</span>
+          <div className="text-lg font-bold text-[#1c1834] tracking-tight font-outfit">ClearTax</div>
         </div>
-        <div className="flex-1 py-6 px-4 space-y-1 overflow-y-auto">
+        <div className="flex-1 py-6 px-4 space-y-1.5 overflow-y-auto">
           {navigation.map((item) => {
             const isActive = pathname === item.href;
             return (
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex items-center px-3 py-2.5 rounded-lg transition-colors ${
+                className={`relative flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 ${
                   isActive
-                    ? "bg-[#f4f2ff] text-[#5a38ef] font-medium"
-                    : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+                    ? "bg-[#5a38ef]/5 text-[#5a38ef] font-semibold"
+                    : "text-stone-500 hover:bg-stone-50/80 hover:text-stone-900"
                 }`}
               >
-                <item.icon size={18} className={`mr-3 ${isActive ? "text-[#5a38ef]" : "text-gray-400"}`} strokeWidth={isActive ? 2 : 1.5} />
-                <span className="text-[14px]">{item.name}</span>
+                {isActive && (
+                  <motion.span
+                    layoutId="activeIndicator"
+                    className="absolute left-0 top-1/4 bottom-1/4 w-1 bg-[#5a38ef] rounded-r-full"
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                  />
+                )}
+                <item.icon size={18} className={`mr-3 ${isActive ? "text-[#5a38ef]" : "text-stone-400"}`} strokeWidth={isActive ? 2.2 : 1.8} />
+                <span className="text-[13.5px]">{item.name}</span>
               </Link>
             );
           })}
         </div>
-        <div className="p-4 border-t border-gray-100">
+        <div className="p-4 border-t border-stone-50 bg-stone-50/30">
           {mounted && user ? (
             <div className="flex items-center mb-4 px-2">
               {profilePicture ? (
                 <img
                   src={profilePicture}
                   alt={displayName}
-                  className="w-8 h-8 rounded-full object-cover border border-gray-150"
+                  className="w-9 h-9 rounded-full object-cover border border-stone-100"
                 />
               ) : (
-                <div className="w-8 h-8 rounded-full bg-[#f4f2ff] flex items-center justify-center text-[#5a38ef] font-medium text-sm">
+                <div className="w-9 h-9 rounded-full bg-[#5a38ef]/10 flex items-center justify-center text-[#5a38ef] font-bold text-sm border border-[#5a38ef]/5 shadow-inner">
                   {initial}
                 </div>
               )}
               <div className="ml-3 overflow-hidden">
-                <p className="text-sm font-medium text-gray-900 truncate">{displayName}</p>
-                <p className="text-xs text-gray-500 truncate">{displayEmail}</p>
+                <p className="text-sm font-semibold text-stone-900 truncate">{displayName}</p>
+                <p className="text-xs text-stone-405 truncate">{displayEmail}</p>
               </div>
             </div>
           ) : (
             <div className="flex items-center mb-4 px-2 animate-pulse">
-              <div className="w-8 h-8 rounded-full bg-gray-100" />
+              <div className="w-9 h-9 rounded-full bg-stone-100" />
               <div className="ml-3 space-y-1.5 flex-1">
-                <div className="h-3 bg-gray-100 rounded w-20" />
-                <div className="h-2.5 bg-gray-100 rounded w-28" />
+                <div className="h-3 bg-stone-100 rounded w-20" />
+                <div className="h-2.5 bg-stone-100 rounded w-28" />
               </div>
             </div>
           )}
@@ -106,7 +115,7 @@ export default function AppLayout({ children }) {
               clearUser();
               router.push("/");
             }}
-            className="flex items-center text-red-600 hover:text-red-700 transition-colors px-2 w-full"
+            className="flex items-center text-red-500 hover:text-red-600 transition-colors px-2 py-1.5 hover:bg-red-50/55 rounded-lg w-full text-left"
           >
             <LogOut size={14} className="mr-2" />
             <span className="text-xs font-semibold">Log out</span>
@@ -115,10 +124,10 @@ export default function AppLayout({ children }) {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 bg-white">
+      <div className="flex-1 flex flex-col min-w-0 bg-[#faf9ff]">
         {/* Top Header */}
-        <header className="h-16 border-b border-gray-100 px-10 flex justify-between items-center sticky top-0 bg-white z-20">
-          <div className="text-sm font-semibold text-gray-800">
+        <header className="h-16 border-b border-stone-100 px-8 flex justify-between items-center sticky top-0 bg-white/80 backdrop-blur-md z-20">
+          <div className="text-sm font-bold text-stone-800 tracking-tight font-outfit">
             {navigation.find(item => item.href === pathname)?.name || "Invoice Processing"}
           </div>
 
@@ -127,50 +136,50 @@ export default function AppLayout({ children }) {
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="flex items-center gap-3 hover:bg-gray-50 p-1.5 rounded-xl transition-all outline-none"
+                className="flex items-center gap-3 hover:bg-stone-50 p-1.5 rounded-xl transition-all outline-none"
               >
                 {profilePicture ? (
                   <img
                     src={profilePicture}
                     alt={displayName}
-                    className="w-8 h-8 rounded-full object-cover border border-gray-200"
+                    className="w-8 h-8 rounded-full object-cover border border-stone-200"
                   />
                 ) : (
-                  <div className="w-8 h-8 rounded-full bg-[#f4f2ff] flex items-center justify-center text-[#5a38ef] font-medium text-sm border border-gray-100">
+                  <div className="w-8 h-8 rounded-full bg-[#5a38ef]/10 flex items-center justify-center text-[#5a38ef] font-semibold text-sm border border-[#5a38ef]/5">
                     {initial}
                   </div>
                 )}
                 <div className="text-left hidden sm:block">
-                  <p className="text-xs font-bold text-gray-900 leading-none">{displayName}</p>
-                  <p className="text-[10px] text-gray-400 font-medium mt-1 leading-none">{displayEmail}</p>
+                  <p className="text-xs font-bold text-stone-900 leading-none">{displayName}</p>
+                  <p className="text-[10px] text-stone-400 font-semibold mt-1 leading-none">{displayEmail}</p>
                 </div>
-                <ChevronDown size={14} className="text-gray-400 hidden sm:block" />
+                <ChevronDown size={14} className="text-stone-400 hidden sm:block" />
               </button>
 
               {/* Dropdown Menu */}
               {dropdownOpen && (
-                <div className="absolute right-0 mt-2 w-52 bg-white rounded-2xl border border-gray-150 shadow-lg py-2 z-30 transition-all animate-fadeIn">
-                  <div className="px-4 py-2 border-b border-gray-50 sm:hidden">
-                    <p className="text-xs font-bold text-gray-900">{displayName}</p>
-                    <p className="text-[10px] text-gray-400 font-medium truncate">{displayEmail}</p>
+                <div className="absolute right-0 mt-2 w-52 bg-white rounded-2xl border border-stone-100 shadow-xl py-2 z-30 transition-all animate-fadeIn">
+                  <div className="px-4 py-2 border-b border-stone-50 sm:hidden">
+                    <p className="text-xs font-bold text-stone-900">{displayName}</p>
+                    <p className="text-[10px] text-stone-400 font-medium truncate">{displayEmail}</p>
                   </div>
                   <Link
                     href="/profile"
                     onClick={() => setDropdownOpen(false)}
-                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    className="flex items-center px-4 py-2 text-sm text-stone-700 hover:bg-stone-50 transition-colors"
                   >
-                    <User size={14} className="mr-2 text-gray-400" />
+                    <User size={14} className="mr-2 text-stone-400" />
                     <span>My Profile</span>
                   </Link>
                   <Link
                     href="/settings"
                     onClick={() => setDropdownOpen(false)}
-                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    className="flex items-center px-4 py-2 text-sm text-stone-700 hover:bg-stone-50 transition-colors"
                   >
-                    <Settings size={14} className="mr-2 text-gray-400" />
+                    <Settings size={14} className="mr-2 text-stone-400" />
                     <span>Account Settings</span>
                   </Link>
-                  <hr className="my-1 border-gray-50" />
+                  <hr className="my-1 border-stone-50" />
                   <button
                     onClick={() => {
                       setDropdownOpen(false);
@@ -186,11 +195,11 @@ export default function AppLayout({ children }) {
               )}
             </div>
           ) : (
-            <div className="h-8 w-24 bg-gray-100 rounded-lg animate-pulse" />
+            <div className="h-8 w-24 bg-stone-100 rounded-lg animate-pulse" />
           )}
         </header>
 
-        <main className="flex-1 overflow-y-auto p-10 bg-gray-50/10">
+        <main className="flex-1 overflow-y-auto p-8 lg:p-10">
           <div className="max-w-5xl mx-auto">
             {children}
           </div>
