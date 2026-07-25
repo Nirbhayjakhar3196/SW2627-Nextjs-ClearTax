@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { FileSpreadsheet, Loader2, Calendar, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
-import { useAuthStore } from "@/store/auth.store";
+import { useAuthStore, getCookie } from "@/store/auth.store";
 import axios from "@/lib/axios";
 
 export default function LibraryPage() {
@@ -34,7 +34,8 @@ export default function LibraryPage() {
       }
     };
 
-    if (token) {
+    const activeToken = token || (typeof document !== "undefined" && getCookie("bip_token"));
+    if (activeToken) {
       fetchJobs();
     } else {
       setLoading(false);

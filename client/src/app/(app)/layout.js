@@ -3,7 +3,7 @@
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { LayoutDashboard, FileSpreadsheet, History, Settings, User, FileText, LogOut, ChevronDown } from "lucide-react";
-import { useAuthStore } from "@/store/auth.store";
+import { useAuthStore, getCookie } from "@/store/auth.store";
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import axios from "@/lib/axios";
@@ -14,6 +14,7 @@ export default function AppLayout({ children }) {
   const user = useAuthStore((state) => state.user);
   const token = useAuthStore((state) => state.token);
   const setUser = useAuthStore((state) => state.setUser);
+  const setToken = useAuthStore((state) => state.setToken);
   const clearUser = useAuthStore((state) => state.clearUser);
   const [mounted, setMounted] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -23,12 +24,16 @@ export default function AppLayout({ children }) {
     setMounted(true);
 
     const validateToken = async () => {
-      if (token) {
+      const activeToken = token || (typeof document !== "undefined" && getCookie("bip_token"));
+      if (activeToken) {
         try {
           const response = await axios.get("/auth/me");
           const data = response.data;
           if (data.success && data.user) {
             setUser(data.user);
+            if (!token) {
+              setToken(activeToken);
+            }
           } else {
             clearUser();
             router.push("/login");
@@ -39,13 +44,16 @@ export default function AppLayout({ children }) {
           router.push("/login");
         }
       } else {
-        clearUser();
-        router.push("/login");
+        const hasAuthCookie = typeof document !== "undefined" && getCookie("bip_auth") === "1";
+        if (!hasAuthCookie) {
+          clearUser();
+          router.push("/login");
+        }
       }
     };
 
     validateToken();
-  }, [token, setUser, clearUser, router]);
+  }, [token, setUser, setToken, clearUser, router]);
 
   // Handle clicking outside the dropdown to close it
   useEffect(() => {

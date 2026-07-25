@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useAuthStore } from "../store/auth.store";
+import { useAuthStore, getCookie } from "../store/auth.store";
 
 const baseURL = process.env.NEXT_PUBLIC_API_URL
   ? `${process.env.NEXT_PUBLIC_API_URL}/api`
@@ -8,7 +8,7 @@ const baseURL = process.env.NEXT_PUBLIC_API_URL
 const axiosInstance = axios.create({ baseURL });
 
 axiosInstance.interceptors.request.use((config) => {
-  const token = useAuthStore.getState().token;
+  const token = useAuthStore.getState().token || (typeof document !== "undefined" && getCookie("bip_token"));
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
