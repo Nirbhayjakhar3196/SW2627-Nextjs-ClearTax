@@ -160,3 +160,33 @@ The project is considered complete when:
 - Upload history
 - Search & filters
 - Export processing report
+
+⭐ Email notification after CSV processing
+
+⭐ CSV validation before upload
+
+⭐ Download processed CSV
+
+⭐ Pagination
+
+⭐ Search
+
+⭐ Filters
+
+⭐ Admin dashboard
+
+⭐ Audit logs
+
+⭐ Role-based access control
+
+⭐ Background retry queue
+
+⭐ Rate limiting
+
+⭐ Docker Compose
+
+⭐ Swagger/OpenAPI docs
+
+⭐ Unit tests
+
+⭐ Integration tests
