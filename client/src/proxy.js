@@ -6,6 +6,8 @@ const PRIVATE_PREFIXES = [
   "/jobs",
   "/invoices",
   "/reports",
+  "/results",
+  "/library",
   "/profile",
   "/settings",
 ];
@@ -35,6 +37,8 @@ export const config = {
     "/jobs/:path*",
     "/invoices/:path*",
     "/reports/:path*",
+    "/results/:path*",
+    "/library/:path*",
     "/profile/:path*",
     "/settings/:path*",
     "/login",

@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { CheckCircle2, XCircle, AlertTriangle, FileSpreadsheet, Download, Loader2 } from "lucide-react";
 import Papa from "papaparse";
 import { motion } from "framer-motion";
-import { useAuthStore } from "@/store/auth.store";
+import { useAuthStore, getCookie } from "@/store/auth.store";
 import axios from "@/lib/axios";
 
 function ResultsContent() {
@@ -84,7 +84,8 @@ function ResultsContent() {
       }
     };
 
-    if (token) {
+    const activeToken = token || (typeof document !== "undefined" && getCookie("bip_token"));
+    if (activeToken) {
       if (jobId) {
         fetchJob(jobId);
         intervalId = setInterval(() => fetchJob(jobId), 1500);
