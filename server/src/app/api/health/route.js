@@ -1,3 +1,0 @@
-export async function GET() {
-  return Response.json({ ok: true, service: "frontend-api", timestamp: new Date().toISOString() });
-}
