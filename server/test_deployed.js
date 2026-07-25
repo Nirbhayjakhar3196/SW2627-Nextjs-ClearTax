@@ -6,7 +6,7 @@ async function testDeployedFlow() {
   try {
     // 1. Signup
     console.log("Testing Signup...");
-    const signupRes = await fetch("https://sw2627-nextjs-cleartax-5.onrender.com/api/auth/signup", {
+    const signupRes = await fetch("https://sw2627-nextjs-cleartax-6.onrender.com/api/auth/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password, name })
@@ -20,7 +20,7 @@ async function testDeployedFlow() {
 
     // 2. Login
     console.log("\nTesting Login...");
-    const loginRes = await fetch("https://sw2627-nextjs-cleartax-5.onrender.com/api/auth/login", {
+    const loginRes = await fetch("https://sw2627-nextjs-cleartax-6.onrender.com/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password })
@@ -36,7 +36,7 @@ async function testDeployedFlow() {
 
     // 3. Me GET
     console.log("\nTesting GET /me...");
-    const meRes = await fetch("https://sw2627-nextjs-cleartax-5.onrender.com/api/auth/me", {
+    const meRes = await fetch("https://sw2627-nextjs-cleartax-6.onrender.com/api/auth/me", {
       method: "GET",
       headers: { 
         "Content-Type": "application/json",
@@ -48,7 +48,7 @@ async function testDeployedFlow() {
 
     // 4. Me PUT (Update Profile Name)
     console.log("\nTesting PUT /me (Update Name)...");
-    const updateRes = await fetch("https://sw2627-nextjs-cleartax-5.onrender.com/api/auth/me", {
+    const updateRes = await fetch("https://sw2627-nextjs-cleartax-6.onrender.com/api/auth/me", {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
