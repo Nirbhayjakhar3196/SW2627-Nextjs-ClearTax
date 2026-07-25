@@ -1,6 +1,6 @@
 import { fileURLToPath } from 'url';
 
-const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:5000";
+const BACKEND_URL = process.env.BACKEND_URL || "https://sw2627-nextjs-cleartax-5.onrender.com";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
