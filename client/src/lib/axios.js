@@ -1,16 +1,31 @@
 import axios from "axios";
 import { useAuthStore, getCookie } from "../store/auth.store";
 
-const baseURL = process.env.NEXT_PUBLIC_API_URL
-  ? `${process.env.NEXT_PUBLIC_API_URL}/api`
-  : "/api";
+const getBaseURL = () => {
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return `${process.env.NEXT_PUBLIC_API_URL}/api`;
+  }
+  if (typeof window !== "undefined") {
+    if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+      return "http://localhost:5000/api";
+    }
+  }
+  return "https://sw2627-nextjs-cleartax-6.onrender.com/api";
+};
+
+const baseURL = getBaseURL();
 
 const axiosInstance = axios.create({ baseURL });
 
 axiosInstance.interceptors.request.use((config) => {
   const token = useAuthStore.getState().token || (typeof document !== "undefined" && getCookie("bip_token"));
   if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+    if (config.headers && typeof config.headers.set === "function") {
+      config.headers.set("Authorization", `Bearer ${token}`);
+    } else {
+      config.headers = config.headers || {};
+      config.headers.Authorization = `Bearer ${token}`;
+    }
   }
   return config;
 });

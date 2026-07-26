@@ -55,11 +55,7 @@ export default function ProfilePage() {
         formData.append("profilePicture", avatarFile);
       }
 
-      const response = await axios.put("/auth/me", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const response = await axios.put("/auth/me", formData);
 
       const data = response.data;
       if (!data.success) {
