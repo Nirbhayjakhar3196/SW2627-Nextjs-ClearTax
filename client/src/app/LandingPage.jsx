@@ -35,14 +35,15 @@ export default function Home() {
   };
 
   return (
-    <div className="app-page page-shell--split relative min-h-screen overflow-hidden bg-[#faf9ff]">
-      {/* Background Ambient Glowing Blobs */}
-      <div className="ambient-glow-1"></div>
-      <div className="ambient-glow-2"></div>
-
+    <div className="app-page page-shell--split relative min-h-screen bg-transparent">
       <Navbar />
 
-      <main className="landing-page relative z-10">
+      <div className="w-full overflow-x-hidden relative">
+        {/* Background Ambient Glowing Blobs */}
+        <div className="ambient-glow-1"></div>
+        <div className="ambient-glow-2"></div>
+
+        <main className="landing-page relative z-10">
         {/* Hero Panel Section */}
         <motion.section
           className="hero-panel mb-16"
@@ -184,27 +185,33 @@ export default function Home() {
                 {
                   step: "Step 01",
                   title: "Upload Batch",
-                  description: "Drop in large CSV invoice files from your finance team or vendor partners.",
+                  description: "Drag and drop high-volume CSV files containing thousands of invoices. Our pipeline instantly verifies headers, structures, and data formats in seconds.",
                   icon: UploadCloud,
                 },
                 {
                   step: "Step 02",
                   title: "Async Validation",
-                  description: "Run schema checks, pricing validations, and math checks in background queues.",
+                  description: "Run multi-threaded schema validation and invoice matching jobs in background queues. Receive real-time progress updates without blocking your workspace.",
                   icon: Cpu,
                 },
                 {
                   step: "Step 03",
                   title: "Exception Review",
-                  description: "Reconcile flagged items, export clean reports, and trigger ledger syncing.",
+                  description: "Surface discrepancy warnings, GSTIN mismatches, and mathematical errors instantly. Reconcile exceptions with single-click actions and sync clean data directly to ERP ledgers.",
                   icon: TrendingUp,
                 },
               ].map((item) => {
                 const IconComponent = item.icon;
                 return (
-                  <article 
+                  <motion.article 
                     key={item.step} 
-                    className="flex flex-col items-center text-center p-8 bg-white border border-stone-200/50 rounded-3xl shadow-sm hover:shadow-md transition-shadow relative z-20 group"
+                    className="flex flex-col items-center text-center p-8 bg-white border border-stone-200/50 rounded-3xl shadow-sm relative z-20 group cursor-default"
+                    whileHover={{ 
+                      y: -8, 
+                      boxShadow: "0 20px 40px -10px rgba(210, 84, 61, 0.08)",
+                      borderColor: "rgba(210, 84, 61, 0.15)"
+                    }}
+                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
                   >
                     {/* Icon Squircle */}
                     <div className="w-14 h-14 rounded-2xl bg-orange-50/70 border border-orange-100/50 flex items-center justify-center text-[#d2543d] mb-6 shadow-sm group-hover:scale-105 transition-transform duration-300">
@@ -220,32 +227,98 @@ export default function Home() {
                     <p className="text-xs md:text-sm leading-relaxed text-stone-400 font-sans max-w-[240px]">
                       {item.description}
                     </p>
-                  </article>
+                  </motion.article>
                 );
               })}
             </div>
           </div>
         </motion.section>
 
-        {/* About Section */}
+        {/* About Section - Premium Redesign */}
         <motion.section
           id="about"
-          className="glass-card p-10 mb-8 relative overflow-hidden cursor-default"
+          className="glass-card p-10 md:p-12 mb-8 relative overflow-hidden cursor-default"
           initial={{ opacity: 0, y: 35 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.6, delay: 0.1 }}
         >
-          <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-to-br from-orange-100/20 to-transparent rounded-br-full pointer-events-none"></div>
-          <p className="text-xs font-bold tracking-widest uppercase text-[#ff8c70] mb-3 font-sans">About</p>
-          <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight text-stone-900 mb-4 max-w-xl font-outfit">A clean, high-performance way to manage invoice automation.</h2>
-          <p className="text-base text-stone-500 leading-relaxed max-w-2xl">
-            This dashboard is designed for operations and finance teams that need
-            spacious UI, reliable status visibility, and fast movement from upload to reporting.
-          </p>
+          <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-to-br from-orange-100/10 to-transparent rounded-br-full pointer-events-none"></div>
+          
+          <div className="grid md:grid-cols-12 gap-8 md:gap-12 relative z-10">
+            {/* Left Column - Business Benefits & Copy */}
+            <div className="md:col-span-7 flex flex-col justify-center space-y-5 text-left">
+              <p className="text-xs font-bold tracking-widest uppercase text-[#d2543d] font-sans">Why ClearTax</p>
+              <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-stone-900 leading-tight font-outfit">
+                Why finance operations scale with ClearTax
+              </h2>
+              <p className="text-sm md:text-base text-stone-500 leading-relaxed font-sans">
+                Manual invoice validation and reconciliation drain valuable finance resources, causing audit backlogs and cash flow bottlenecks. ClearTax automates high-volume processing with an enterprise-grade async engine that turns days of data entry into minutes of automated checking.
+              </p>
+              
+              <div className="grid md:grid-cols-2 gap-6 pt-2">
+                <div className="space-y-1.5">
+                  <h4 className="text-sm font-bold text-stone-800 font-outfit flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#d2543d]"></span> 90% Time Saved
+                  </h4>
+                  <p className="text-xs text-stone-400 leading-relaxed font-sans">
+                    Eliminate line-by-line spreadsheet reviews. Let our background workers find and flag pricing errors instantly.
+                  </p>
+                </div>
+                <div className="space-y-1.5">
+                  <h4 className="text-sm font-bold text-stone-800 font-outfit flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#d2543d]"></span> Risk Mitigation
+                  </h4>
+                  <p className="text-xs text-stone-400 leading-relaxed font-sans">
+                    Catch GSTIN mismatches, pricing discrepancies, and compliance issues prior to ledger submission.
+                  </p>
+                </div>
+                <div className="space-y-1.5">
+                  <h4 className="text-sm font-bold text-stone-800 font-outfit flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#d2543d]"></span> Seamless Integration
+                  </h4>
+                  <p className="text-xs text-stone-400 leading-relaxed font-sans">
+                    Directly export clean ERP-compatible formats and sync results to SAP, Tally, or custom ledgers.
+                  </p>
+                </div>
+                <div className="space-y-1.5">
+                  <h4 className="text-sm font-bold text-stone-800 font-outfit flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#d2543d]"></span> Full Transparency
+                  </h4>
+                  <p className="text-xs text-stone-400 leading-relaxed font-sans">
+                    Maintains a cryptographic audit trail of all schema mapping validations and user reconciliation actions.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column - Value in Numbers Card */}
+            <div className="md:col-span-5 flex items-center justify-center">
+              <div className="w-full bg-[#fcfbfa]/90 border border-stone-200/50 p-8 rounded-3xl shadow-sm text-center space-y-6 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-orange-50/40 rounded-bl-full pointer-events-none"></div>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-stone-400 font-sans">Value in Numbers</h3>
+                
+                <div className="space-y-1">
+                  <p className="text-4xl md:text-5xl font-extrabold text-stone-900 font-outfit leading-none">10x</p>
+                  <p className="text-xs font-semibold text-stone-500 font-sans">Faster invoice reconciliation</p>
+                </div>
+                <div className="w-full h-[1px] bg-stone-200/50" />
+                <div className="space-y-1">
+                  <p className="text-4xl md:text-5xl font-extrabold text-stone-900 font-outfit leading-none">99.9%</p>
+                  <p className="text-xs font-semibold text-stone-500 font-sans">Tax calculation accuracy</p>
+                </div>
+                <div className="w-full h-[1px] bg-stone-200/50" />
+                <div className="space-y-1">
+                  <p className="text-4xl md:text-5xl font-extrabold text-[#d2543d] font-outfit leading-none">0%</p>
+                  <p className="text-xs font-semibold text-stone-500 font-sans">ERP data entry errors</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </motion.section>
       </main>
-      <Footer />
+        <Footer />
+      </div>
     </div>
   );
 }

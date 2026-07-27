@@ -8,19 +8,19 @@ import { motion } from "framer-motion";
 const navLinks = [
   { href: APP_ROUTES.HOME, label: "Home" },
   { href: "#features", label: "Features" },
-  { href: "#pricing", label: "Pricing" },
+  { href: "#pricing", label: "How It Works" },
   { href: "#about", label: "About" },
 ];
 
 export default function Navbar() {
   return (
-    <motion.header 
-      className="marketing-nav"
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-    >
-      <div className="marketing-nav__inner">
+    <header className="marketing-nav">
+      <motion.div 
+        className="marketing-nav__inner"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+      >
         <Link href="/" className="brand-mark group">
           <motion.span 
             className="brand-mark__badge"
@@ -35,7 +35,7 @@ export default function Navbar() {
             <small>Enterprise automation</small>
           </span>
         </Link>
-
+ 
         <nav className="marketing-nav__links" aria-label="Primary navigation">
           {navLinks.map((link) => (
             <Link key={link.href} href={link.href} className="marketing-nav__link relative group">
@@ -44,7 +44,7 @@ export default function Navbar() {
             </Link>
           ))}
         </nav>
-
+ 
         <div className="marketing-nav__actions">
           <motion.div
             whileHover={{ scale: 1.05, rotate: 3 }}
@@ -62,11 +62,11 @@ export default function Navbar() {
             whileTap={{ scale: 0.97 }}
           >
             <Link href={APP_ROUTES.SIGNUP} className="marketing-nav__cta">
-              Sign Up
+              Get Started Free
             </Link>
           </motion.div>
         </div>
-      </div>
-    </motion.header>
+      </motion.div>
+    </header>
   );
 }
