@@ -10,29 +10,7 @@ import Footer from "../components/layout/Footer";
 import Navbar from "../components/layout/Navbar";
 
 export default function Home() {
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.15,
-        delayChildren: 0.1,
-      },
-    },
-  };
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        type: "spring",
-        stiffness: 100,
-        damping: 18,
-      },
-    },
-  };
 
   return (
     <div className="app-page page-shell--split relative min-h-screen bg-transparent">

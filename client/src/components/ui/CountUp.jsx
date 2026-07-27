@@ -22,6 +22,27 @@ export default function CountUp({
   const targetValue = parseFloat(value);
 
   useEffect(() => {
+    const animateCount = () => {
+      let startTimestamp = null;
+      const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        
+        // Easing function - easeOutQuad
+        const easedProgress = progress * (2 - progress);
+        const currentValue = easedProgress * targetValue;
+
+        setDisplayValue(currentValue);
+
+        if (progress < 1) {
+          window.requestAnimationFrame(step);
+        } else {
+          setDisplayValue(targetValue);
+        }
+      };
+      window.requestAnimationFrame(step);
+    };
+
     const observer = new IntersectionObserver(
       (entries) => {
         const [entry] = entries;
@@ -38,28 +59,7 @@ export default function CountUp({
     }
 
     return () => observer.disconnect();
-  }, [value, duration]);
-
-  const animateCount = () => {
-    let startTimestamp = null;
-    const step = (timestamp) => {
-      if (!startTimestamp) startTimestamp = timestamp;
-      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-      
-      // Easing function - easeOutQuad
-      const easedProgress = progress * (2 - progress);
-      const currentValue = easedProgress * targetValue;
-
-      setDisplayValue(currentValue);
-
-      if (progress < 1) {
-        window.requestAnimationFrame(step);
-      } else {
-        setDisplayValue(targetValue);
-      }
-    };
-    window.requestAnimationFrame(step);
-  };
+  }, [duration, targetValue]);
 
   return (
     <span ref={elementRef} className="tabular-nums">
