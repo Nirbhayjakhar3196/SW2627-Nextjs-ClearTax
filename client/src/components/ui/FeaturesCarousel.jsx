@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { UploadCloud, CheckCircle2, FileSpreadsheet, Loader2, AlertCircle, FileCheck, ShieldAlert, BarChart3, HelpCircle, ArrowRight } from "lucide-react";
+import { UploadCloud, CheckCircle2, Loader2, ShieldAlert, BarChart3, ArrowRight } from "lucide-react";
 
 export default function FeaturesCarousel() {
   const [activeSlide, setActiveSlide] = useState(0);
