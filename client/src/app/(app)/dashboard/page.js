@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import axios from "@/lib/axios";
 import { useAuthStore } from "@/store/auth.store";
 import Button from "@/components/ui/Button";
+import CountUp from "@/components/ui/CountUp";
 
 export default function DashboardPage() {
   const [profile, setProfile] = useState(null);
@@ -181,10 +182,10 @@ export default function DashboardPage() {
         variants={{ visible: { transition: { staggerChildren: 0.05 } } }}
       >
         {[
-          { name: "Total Invoices", value: statsLoading ? "..." : stats.total, icon: FileSpreadsheet, bg: "bg-blue-50/50", border: "border-blue-100/50", text: "text-blue-600", iconBg: "bg-blue-100/40" },
-          { name: "Matches", value: statsLoading ? "..." : stats.matches, icon: CheckCircle, bg: "bg-emerald-50/50", border: "border-emerald-100/50", text: "text-emerald-600", iconBg: "bg-emerald-100/40" },
-          { name: "Mismatches", value: statsLoading ? "..." : stats.mismatches, icon: AlertCircle, bg: "bg-rose-50/50", border: "border-rose-100/50", text: "text-rose-600", iconBg: "bg-rose-100/40" },
-          { name: "Pending", value: statsLoading ? "..." : stats.pending, icon: Clock, bg: "bg-amber-50/50", border: "border-amber-100/50", text: "text-amber-600", iconBg: "bg-amber-100/40" },
+          { name: "Total Invoices", value: stats.total, icon: FileSpreadsheet, bg: "bg-blue-50/50", border: "border-blue-100/50", text: "text-blue-600", iconBg: "bg-blue-100/40" },
+          { name: "Matches", value: stats.matches, icon: CheckCircle, bg: "bg-emerald-50/50", border: "border-emerald-100/50", text: "text-emerald-600", iconBg: "bg-emerald-100/40" },
+          { name: "Mismatches", value: stats.mismatches, icon: AlertCircle, bg: "bg-rose-50/50", border: "border-rose-100/50", text: "text-rose-600", iconBg: "bg-rose-100/40" },
+          { name: "Pending", value: stats.pending, icon: Clock, bg: "bg-amber-50/50", border: "border-amber-100/50", text: "text-amber-600", iconBg: "bg-amber-100/40" },
         ].map((stat) => (
           <motion.div
             key={stat.name}
@@ -197,7 +198,9 @@ export default function DashboardPage() {
                 <stat.icon size={16} strokeWidth={2.2} />
               </div>
             </div>
-            <p className="text-3xl font-extrabold text-stone-900 font-outfit leading-none mb-1">{stat.value}</p>
+            <p className="text-3xl font-extrabold text-stone-900 font-outfit leading-none mb-1">
+              {statsLoading ? "..." : <CountUp value={stat.value} />}
+            </p>
             <span className={`absolute bottom-0 left-0 w-full h-[3px] opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${stat.text.replace("text", "bg")}`}></span>
           </motion.div>
         ))}
