@@ -2,37 +2,12 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { CheckCircle2, FileSpreadsheet, TimerReset, Workflow, ArrowRight } from "lucide-react";
+import { ArrowRight, UploadCloud, Cpu, TrendingUp } from "lucide-react";
+import CountUp from "../components/ui/CountUp";
+import FeaturesCarousel from "../components/ui/FeaturesCarousel";
 
 import Footer from "../components/layout/Footer";
 import Navbar from "../components/layout/Navbar";
-
-const features = [
-  {
-    title: "Bulk Uploads",
-    description: "Import high-volume CSV invoice batches without slowing down finance operations.",
-    icon: FileSpreadsheet,
-    color: "blue",
-  },
-  {
-    title: "Async Processing",
-    description: "Track jobs in real time while parsing, validation, and matching run in the background.",
-    icon: Workflow,
-    color: "purple",
-  },
-  {
-    title: "Faster Reviews",
-    description: "Surface mismatches and exceptions early so teams spend less time reconciling manually.",
-    icon: TimerReset,
-    color: "emerald",
-  },
-  {
-    title: "Enterprise Visibility",
-    description: "Keep reporting, invoice status, and audit trails in one secure workspace.",
-    icon: CheckCircle2,
-    color: "rose",
-  },
-];
 
 export default function Home() {
   const containerVariants = {
@@ -118,7 +93,9 @@ export default function Home() {
                     <p className="metric-label">Daily Throughput</p>
                     <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-ping"></span>
                   </div>
-                  <p className="metric-value">25k+</p>
+                  <p className="metric-value">
+                    <CountUp value={25} suffix="k+" />
+                  </p>
                   <span className="absolute bottom-0 left-0 w-full h-[3px] bg-blue-500 scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300"></span>
                 </div>
 
@@ -127,7 +104,9 @@ export default function Home() {
                     <p className="metric-label">Success Rate</p>
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
                   </div>
-                  <p className="metric-value text-emerald-500">98.6%</p>
+                  <p className="metric-value text-emerald-500">
+                    <CountUp value={98.6} suffix="%" />
+                  </p>
                   <span className="absolute bottom-0 left-0 w-full h-[3px] bg-[#10b981] scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300"></span>
                 </div>
 
@@ -136,7 +115,9 @@ export default function Home() {
                     <p className="metric-label">Active Jobs</p>
                     <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-ping"></span>
                   </div>
-                  <p className="metric-value">128</p>
+                  <p className="metric-value">
+                    <CountUp value={128} />
+                  </p>
                   <span className="absolute bottom-0 left-0 w-full h-[3px] bg-indigo-500 scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300"></span>
                 </div>
 
@@ -145,7 +126,9 @@ export default function Home() {
                     <p className="metric-label">Needs Review</p>
                     <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>
                   </div>
-                  <p className="metric-value text-rose-500">11</p>
+                  <p className="metric-value text-rose-500">
+                    <CountUp value={11} />
+                  </p>
                   <span className="absolute bottom-0 left-0 w-full h-[3px] bg-rose-500 scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300"></span>
                 </div>
               </div>
@@ -153,53 +136,94 @@ export default function Home() {
           </div>
         </motion.section>
 
-        {/* Feature Bento Grid Section */}
+        {/* Features Carousel Section */}
         <motion.section
           id="features"
-          className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16 relative z-10"
-          aria-label="Features"
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-100px" }}
-        >
-          {features.map(({ title, description, icon: Icon }) => (
-            <motion.article
-              key={title}
-              variants={itemVariants}
-              className="glass-card p-7 flex flex-col gap-3 relative overflow-hidden group cursor-default"
-            >
-              <div className="feature-icon w-11 h-11 mb-2 rounded-2xl bg-indigo-50/50 flex items-center justify-center text-[#5a38ef] group-hover:bg-[#5a38ef] group-hover:text-white group-hover:rotate-6 transition-all duration-300">
-                <Icon className="h-5 w-5" />
-              </div>
-              <h2 className="text-lg font-bold tracking-tight text-stone-900 font-outfit">{title}</h2>
-              <p className="text-sm text-stone-500 leading-relaxed">{description}</p>
-            </motion.article>
-          ))}
-        </motion.section>
-
-        {/* How It Works Grid Section */}
-        <motion.section
-          id="pricing"
           className="glass-card mb-16 p-10 relative overflow-hidden cursor-default"
           initial={{ opacity: 0, y: 35 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.6 }}
         >
-          <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-bl from-indigo-100/30 to-transparent rounded-bl-full pointer-events-none"></div>
-          <p className="text-xs font-bold tracking-widest uppercase text-[#5a38ef] mb-8 font-sans">Workflow Pipeline</p>
-          <div className="grid md:grid-cols-3 gap-10">
-            {[
-              ["1. Upload batch", "Drop in large CSV invoice files from your finance team or vendor partners."],
-              ["2. Async validation", "Run schema checks, pricing validations, and math checks in background queues."],
-              ["3. Exception review", "Reconcile flagged items, exports clean reports, and trigger ledger syncing."],
-            ].map(([title, description]) => (
-              <article key={title} className="flex flex-col gap-3 group">
-                <h3 className="text-lg font-bold text-stone-900 font-outfit group-hover:text-[#5a38ef] transition-colors">{title}</h3>
-                <p className="text-sm leading-relaxed text-stone-500">{description}</p>
-              </article>
-            ))}
+          <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-to-br from-orange-100/10 to-transparent rounded-br-full pointer-events-none"></div>
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <p className="text-xs font-bold tracking-widest uppercase text-[#d2543d] mb-3 font-sans">Why choose ClearTax</p>
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-stone-900 font-outfit">
+              Powerful automation for high-volume invoice processing
+            </h2>
+          </div>
+          <FeaturesCarousel />
+        </motion.section>
+
+        {/* How It Works Section - Premium Redesign */}
+        <motion.section
+          id="pricing"
+          className="mb-20 relative cursor-default"
+          initial={{ opacity: 0, y: 35 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6 }}
+        >
+          {/* Centered Header */}
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <p className="text-xs font-bold tracking-widest uppercase text-[#d2543d] mb-3 font-sans">How it works</p>
+            <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-stone-900 mb-4 font-outfit">
+              Three steps to invoice automation
+            </h2>
+            <p className="text-sm md:text-base text-stone-500 leading-relaxed max-w-lg mx-auto font-sans">
+              No complicated setup. No training needed. If your team can format a basic CSV, they can run our batch processing pipeline.
+            </p>
+          </div>
+
+          {/* Cards container with background line */}
+          <div className="workflow-pipeline-container">
+            <div className="workflow-pipeline-line" />
+            
+            <div className="grid md:grid-cols-3 gap-8 relative z-10">
+              {[
+                {
+                  step: "Step 01",
+                  title: "Upload Batch",
+                  description: "Drop in large CSV invoice files from your finance team or vendor partners.",
+                  icon: UploadCloud,
+                },
+                {
+                  step: "Step 02",
+                  title: "Async Validation",
+                  description: "Run schema checks, pricing validations, and math checks in background queues.",
+                  icon: Cpu,
+                },
+                {
+                  step: "Step 03",
+                  title: "Exception Review",
+                  description: "Reconcile flagged items, export clean reports, and trigger ledger syncing.",
+                  icon: TrendingUp,
+                },
+              ].map((item) => {
+                const IconComponent = item.icon;
+                return (
+                  <article 
+                    key={item.step} 
+                    className="flex flex-col items-center text-center p-8 bg-white border border-stone-200/50 rounded-3xl shadow-sm hover:shadow-md transition-shadow relative z-20 group"
+                  >
+                    {/* Icon Squircle */}
+                    <div className="w-14 h-14 rounded-2xl bg-orange-50/70 border border-orange-100/50 flex items-center justify-center text-[#d2543d] mb-6 shadow-sm group-hover:scale-105 transition-transform duration-300">
+                      <IconComponent size={24} strokeWidth={1.8} />
+                    </div>
+
+                    <span className="text-[11px] font-bold text-[#d2543d] tracking-wider uppercase mb-2 font-sans">
+                      {item.step}
+                    </span>
+                    <h3 className="text-lg font-bold text-stone-900 mb-3 font-outfit">
+                      {item.title}
+                    </h3>
+                    <p className="text-xs md:text-sm leading-relaxed text-stone-400 font-sans max-w-[240px]">
+                      {item.description}
+                    </p>
+                  </article>
+                );
+              })}
+            </div>
           </div>
         </motion.section>
 
