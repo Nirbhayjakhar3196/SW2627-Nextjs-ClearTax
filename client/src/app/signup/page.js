@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { User, Mail, Lock, ArrowRight } from "lucide-react";
+import { User, Mail, Lock, ArrowRight, ArrowLeft } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -50,11 +50,19 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen bg-[#fcfcff] flex items-center justify-center p-4">
       <motion.div
-        className="max-w-md w-full glass-card p-10"
+        className="max-w-md w-full glass-card p-10 flex flex-col"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
       >
+        <Link
+          href="/"
+          className="inline-flex items-center text-[13px] font-medium text-stone-500 hover:text-[#9670f8] transition-colors mb-6 group self-start"
+        >
+          <ArrowLeft size={16} className="mr-2 transition-transform group-hover:-translate-x-0.5" />
+          Back to Home
+        </Link>
+
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#f7f5ff] text-[#9670f8] mb-6 shadow-sm border border-white">
             <User size={26} />

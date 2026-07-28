@@ -104,3 +104,56 @@ export async function updateUserProfile(userId, updateData) {
 
   return await updateUser(userId, prismaUpdateData);
 }
+
+// In-memory OTP store for password resets: email -> { otp, expiresAt }
+const otpStore = new Map();
+
+export async function requestPasswordReset(email) {
+  const user = await findUserByEmail(email);
+  if (!user) {
+    throw new Error("User with this email does not exist");
+  }
+
+  // Generate 6-digit OTP code
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
+
+  otpStore.set(email, { otp, expiresAt });
+  
+  console.log(`\n==========================================\n[PASSWORD RESET OTP] Email: ${email}, OTP: ${otp}\n==========================================\n`);
+
+  return { success: true, otp };
+}
+
+export async function resetPassword(email, otp, newPassword) {
+  const storedData = otpStore.get(email);
+  if (!storedData) {
+    throw new Error("No password reset request found for this email");
+  }
+
+  if (Date.now() > storedData.expiresAt) {
+    otpStore.delete(email);
+    throw new Error("Reset code has expired");
+  }
+
+  if (storedData.otp !== otp) {
+    throw new Error("Invalid reset code");
+  }
+
+  if (!newPassword || newPassword.length < 8) {
+    throw new Error("Password must be at least 8 characters");
+  }
+
+  const user = await findUserByEmail(email);
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+  await updateUser(user.id, { password: hashedPassword });
+
+  // Clean up
+  otpStore.delete(email);
+
+  return { success: true };
+}

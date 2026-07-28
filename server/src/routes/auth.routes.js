@@ -2,7 +2,7 @@ import express from "express";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import { signup, login, getCurrentUser, updateUserProfile } from "../services/auth.service.js";
+import { signup, login, getCurrentUser, updateUserProfile, requestPasswordReset, resetPassword } from "../services/auth.service.js";
 import { signupSchema, loginSchema } from "../validations/auth.validation.js";
 import { authenticateUser } from "../middleware/auth.middleware.js";
 
@@ -109,6 +109,53 @@ router.put("/me", authenticateUser, upload.single("profilePicture"), async (req,
     res.status(400).json({
       success: false,
       message: error.message || "Failed to update profile",
+    });
+  }
+});
+
+// POST /api/auth/forgot-password
+router.post("/forgot-password", async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is required",
+      });
+    }
+    const result = await requestPasswordReset(email);
+    res.json({
+      success: true,
+      message: "Reset code generated and sent to email",
+      otp: result.otp, // returning the OTP for easy demonstration/testing
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+});
+
+// POST /api/auth/reset-password
+router.post("/reset-password", async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+    if (!email || !otp || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Email, reset code (OTP), and new password are required",
+      });
+    }
+    await resetPassword(email, otp, newPassword);
+    res.json({
+      success: true,
+      message: "Password reset successfully",
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
     });
   }
 });
