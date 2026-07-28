@@ -1,8 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Lock, Mail, ArrowRight } from "lucide-react";
+import { Lock, Mail, ArrowRight, ArrowLeft, Key } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -18,20 +19,50 @@ const loginSchema = z.object({
   password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
+const forgotSchema = z.object({
+  email: z.string().email("Please enter a valid email"),
+});
+
+const resetSchema = z.object({
+  otp: z.string().length(6, "Reset code must be exactly 6 digits"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+});
+
 export default function LoginPage() {
   const router = useRouter();
   const setCredentials = useAuthStore((state) => state.setCredentials);
+  const [view, setView] = useState("login"); // "login" | "forgot" | "reset"
+  const [resetEmail, setResetEmail] = useState("");
+  const [demoCode, setDemoCode] = useState("");
 
   const {
-    register,
-    handleSubmit,
-    setError,
-    formState: { errors, isSubmitting },
+    register: registerLogin,
+    handleSubmit: handleSubmitLogin,
+    setError: setErrorLogin,
+    formState: { errors: errorsLogin, isSubmitting: isSubmittingLogin },
   } = useForm({
     resolver: zodResolver(loginSchema),
   });
 
-  const onSubmit = async (data) => {
+  const {
+    register: registerForgot,
+    handleSubmit: handleSubmitForgot,
+    setError: setErrorForgot,
+    formState: { errors: errorsForgot, isSubmitting: isSubmittingForgot },
+  } = useForm({
+    resolver: zodResolver(forgotSchema),
+  });
+
+  const {
+    register: registerReset,
+    handleSubmit: handleSubmitReset,
+    setError: setErrorReset,
+    formState: { errors: errorsReset, isSubmitting: isSubmittingReset },
+  } = useForm({
+    resolver: zodResolver(resetSchema),
+  });
+
+  const onLoginSubmit = async (data) => {
     try {
       const response = await axios.post("/auth/login", data);
       if (response.data.success) {
@@ -45,67 +76,246 @@ export default function LoginPage() {
       const message =
         err.response?.data?.message || "Invalid email or password";
       toast.error("Sign in failed", { description: message });
-      setError("root", { message });
+      setErrorLogin("root", { message });
+    }
+  };
+
+  const onForgotSubmit = async (data) => {
+    try {
+      const response = await axios.post("/auth/forgot-password", data);
+      if (response.data.success) {
+        setResetEmail(data.email);
+        setDemoCode(response.data.otp);
+        toast.success("Reset code generated!", {
+          description: `Code: ${response.data.otp} (Logged to backend console).`,
+        });
+        setView("reset");
+      }
+    } catch (err) {
+      const message =
+        err.response?.data?.message || "Failed to request password reset.";
+      toast.error("Request failed", { description: message });
+      setErrorForgot("root", { message });
+    }
+  };
+
+  const onResetSubmit = async (data) => {
+    try {
+      const response = await axios.post("/auth/reset-password", {
+        email: resetEmail,
+        otp: data.otp,
+        newPassword: data.password,
+      });
+      if (response.data.success) {
+        toast.success("Password reset successful!", {
+          description: "You can now sign in with your new password.",
+        });
+        setView("login");
+        setDemoCode("");
+      }
+    } catch (err) {
+      const message =
+        err.response?.data?.message || "Password reset failed.";
+      toast.error("Reset failed", { description: message });
+      setErrorReset("root", { message });
     }
   };
 
   return (
     <div className="min-h-screen bg-[#fcfcff] flex items-center justify-center p-4">
       <motion.div
-        className="max-w-md w-full glass-card p-10"
+        className="max-w-md w-full glass-card p-10 flex flex-col"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
       >
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#f7f5ff] text-[#9670f8] mb-6 shadow-sm border border-white">
-            <Lock size={26} />
-          </div>
-          <h2 className="text-3xl font-bold tracking-tight text-stone-900">Welcome Back</h2>
-          <p className="text-stone-500 mt-3 text-sm">Sign in to manage your bulk invoices</p>
-        </div>
+        <Link
+          href="/"
+          className="inline-flex items-center text-[13px] font-medium text-stone-500 hover:text-[#9670f8] transition-colors mb-6 group self-start"
+        >
+          <ArrowLeft size={16} className="mr-2 transition-transform group-hover:-translate-x-0.5" />
+          Back to Home
+        </Link>
 
-        {errors.root && (
-          <div className="mb-4 p-4 rounded-lg bg-red-50 border border-red-100 text-red-600 text-sm">
-            {errors.root.message}
-          </div>
+        {view === "login" && (
+          <>
+            <div className="text-center mb-10">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#f7f5ff] text-[#9670f8] mb-6 shadow-sm border border-white">
+                <Lock size={26} />
+              </div>
+              <h2 className="text-3xl font-bold tracking-tight text-stone-900">Welcome Back</h2>
+              <p className="text-stone-500 mt-3 text-sm">Sign in to manage your bulk invoices</p>
+            </div>
+
+            {errorsLogin.root && (
+              <div className="mb-4 p-4 rounded-lg bg-red-50 border border-red-100 text-red-600 text-sm">
+                {errorsLogin.root.message}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmitLogin(onLoginSubmit)} className="space-y-6" noValidate>
+              <Input
+                label="Email Address"
+                type="email"
+                icon={Mail}
+                placeholder="you@company.com"
+                error={errorsLogin.email?.message}
+                {...registerLogin("email")}
+              />
+
+              <div className="space-y-2">
+                <Input
+                  label="Password"
+                  type="password"
+                  icon={Lock}
+                  placeholder="••••••••"
+                  error={errorsLogin.password?.message}
+                  {...registerLogin("password")}
+                />
+                <div className="flex items-center justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setView("forgot")}
+                    className="text-xs font-semibold text-[#9670f8] hover:text-[#7d56e0] transition-colors"
+                  >
+                    Forgot Password?
+                  </button>
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                loading={isSubmittingLogin}
+                icon={!isSubmittingLogin ? ArrowRight : undefined}
+                className="w-full mt-8"
+              >
+                {isSubmittingLogin ? "Signing in..." : "Sign in"}
+              </Button>
+            </form>
+
+            <p className="mt-8 text-center text-[13px] font-medium text-stone-600">
+              Don&apos;t have an account?{" "}
+              <Link href="/signup" className="text-[#9670f8] hover:text-[#7d56e0] transition-colors font-semibold ml-1">
+                Sign up
+              </Link>
+            </p>
+          </>
         )}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
-          <Input
-            label="Email Address"
-            type="email"
-            icon={Mail}
-            placeholder="you@company.com"
-            error={errors.email?.message}
-            {...register("email")}
-          />
+        {view === "forgot" && (
+          <>
+            <div className="text-center mb-10">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#f7f5ff] text-[#9670f8] mb-6 shadow-sm border border-white">
+                <Mail size={26} />
+              </div>
+              <h2 className="text-3xl font-bold tracking-tight text-stone-900">Forgot Password</h2>
+              <p className="text-stone-500 mt-3 text-sm">Enter your email and we will send you a reset code</p>
+            </div>
 
-          <Input
-            label="Password"
-            type="password"
-            icon={Lock}
-            placeholder="••••••••"
-            error={errors.password?.message}
-            {...register("password")}
-          />
+            {errorsForgot.root && (
+              <div className="mb-4 p-4 rounded-lg bg-red-50 border border-red-100 text-red-600 text-sm">
+                {errorsForgot.root.message}
+              </div>
+            )}
 
-          <Button
-            type="submit"
-            loading={isSubmitting}
-            icon={!isSubmitting ? ArrowRight : undefined}
-            className="w-full mt-8"
-          >
-            {isSubmitting ? "Signing in..." : "Sign in"}
-          </Button>
-        </form>
+            <form onSubmit={handleSubmitForgot(onForgotSubmit)} className="space-y-6" noValidate>
+              <Input
+                label="Email Address"
+                type="email"
+                icon={Mail}
+                placeholder="you@company.com"
+                error={errorsForgot.email?.message}
+                {...registerForgot("email")}
+              />
 
-        <p className="mt-8 text-center text-[13px] font-medium text-stone-600">
-          Don&apos;t have an account?{" "}
-          <Link href="/signup" className="text-[#9670f8] hover:text-[#7d56e0] transition-colors font-semibold ml-1">
-            Sign up
-          </Link>
-        </p>
+              <Button
+                type="submit"
+                loading={isSubmittingForgot}
+                icon={!isSubmittingForgot ? ArrowRight : undefined}
+                className="w-full mt-8"
+              >
+                {isSubmittingForgot ? "Sending code..." : "Send Reset Code"}
+              </Button>
+            </form>
+
+            <p className="mt-8 text-center text-[13px] font-medium text-stone-600">
+              Remember your password?{" "}
+              <button
+                type="button"
+                onClick={() => setView("login")}
+                className="text-[#9670f8] hover:text-[#7d56e0] transition-colors font-semibold ml-1"
+              >
+                Sign in
+              </button>
+            </p>
+          </>
+        )}
+
+        {view === "reset" && (
+          <>
+            <div className="text-center mb-10">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#f7f5ff] text-[#9670f8] mb-6 shadow-sm border border-white">
+                <Key size={26} />
+              </div>
+              <h2 className="text-3xl font-bold tracking-tight text-stone-900">Reset Password</h2>
+              <p className="text-stone-500 mt-3 text-sm">Enter the reset code sent to your email ({resetEmail})</p>
+            </div>
+
+            {demoCode && (
+              <div className="mb-4 p-4 rounded-lg bg-indigo-50 border border-indigo-100 text-stone-750 text-sm text-center">
+                <p className="font-semibold text-[#9670f8]">Demo Reset Code:</p>
+                <code className="text-lg font-bold tracking-widest">{demoCode}</code>
+                <p className="text-xs text-stone-500 mt-1">This code has also been printed in the backend console.</p>
+              </div>
+            )}
+
+            {errorsReset.root && (
+              <div className="mb-4 p-4 rounded-lg bg-red-50 border border-red-100 text-red-600 text-sm">
+                {errorsReset.root.message}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmitReset(onResetSubmit)} className="space-y-6" noValidate>
+              <Input
+                label="Reset Code (OTP)"
+                type="text"
+                icon={Mail}
+                placeholder="6-digit code"
+                error={errorsReset.otp?.message}
+                {...registerReset("otp")}
+              />
+
+              <Input
+                label="New Password"
+                type="password"
+                icon={Lock}
+                placeholder="••••••••"
+                error={errorsReset.password?.message}
+                {...registerReset("password")}
+              />
+
+              <Button
+                type="submit"
+                loading={isSubmittingReset}
+                icon={!isSubmittingReset ? ArrowRight : undefined}
+                className="w-full mt-8"
+              >
+                {isSubmittingReset ? "Resetting password..." : "Reset Password"}
+              </Button>
+            </form>
+
+            <p className="mt-8 text-center text-[13px] font-medium text-stone-600">
+              Did not receive the code?{" "}
+              <button
+                type="button"
+                onClick={() => setView("forgot")}
+                className="text-[#9670f8] hover:text-[#7d56e0] transition-colors font-semibold ml-1"
+              >
+                Resend Code
+              </button>
+            </p>
+          </>
+        )}
       </motion.div>
     </div>
   );
