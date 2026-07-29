@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken";
 
 import { createUser , findUserByEmail , findUserById, updateUser } from "../repositories/user.repository.js"
+import { sendResetEmail } from "./email.service.js";
 
 
 export async function signup(userData){
@@ -106,7 +107,7 @@ export async function updateUserProfile(userId, updateData) {
 }
 
 // In-memory OTP store for password resets: email -> { otp, expiresAt }
-const otpStore = new Map();
+export const otpStore = new Map();
 
 export async function requestPasswordReset(email) {
   const user = await findUserByEmail(email);
@@ -120,9 +121,28 @@ export async function requestPasswordReset(email) {
 
   otpStore.set(email, { otp, expiresAt });
   
-  console.log(`\n==========================================\n[PASSWORD RESET OTP] Email: ${email}, OTP: ${otp}\n==========================================\n`);
+  // Send email to user
+  await sendResetEmail(email, otp);
 
-  return { success: true, otp };
+  return { success: true };
+}
+
+export async function verifyOTP(email, otp) {
+  const storedData = otpStore.get(email);
+  if (!storedData) {
+    throw new Error("No password reset request found for this email");
+  }
+
+  if (Date.now() > storedData.expiresAt) {
+    otpStore.delete(email);
+    throw new Error("Reset code has expired");
+  }
+
+  if (storedData.otp !== otp) {
+    throw new Error("Invalid reset code");
+  }
+
+  return { success: true };
 }
 
 export async function resetPassword(email, otp, newPassword) {

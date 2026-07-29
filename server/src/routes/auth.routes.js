@@ -2,7 +2,7 @@ import express from "express";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import { signup, login, getCurrentUser, updateUserProfile, requestPasswordReset, resetPassword } from "../services/auth.service.js";
+import { signup, login, getCurrentUser, updateUserProfile, requestPasswordReset, verifyOTP, resetPassword, otpStore } from "../services/auth.service.js";
 import { signupSchema, loginSchema } from "../validations/auth.validation.js";
 import { authenticateUser } from "../middleware/auth.middleware.js";
 
@@ -123,11 +123,33 @@ router.post("/forgot-password", async (req, res) => {
         message: "Email is required",
       });
     }
-    const result = await requestPasswordReset(email);
+    await requestPasswordReset(email);
     res.json({
       success: true,
       message: "Reset code generated and sent to email",
-      otp: result.otp, // returning the OTP for easy demonstration/testing
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+});
+
+// POST /api/auth/verify-otp
+router.post("/verify-otp", async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and verification code (OTP) are required",
+      });
+    }
+    await verifyOTP(email, otp);
+    res.json({
+      success: true,
+      message: "Verification code verified successfully",
     });
   } catch (error) {
     res.status(400).json({
@@ -158,6 +180,19 @@ router.post("/reset-password", async (req, res) => {
       message: error.message,
     });
   }
+});
+
+// GET /api/auth/debug-otp (development only for testing)
+router.get("/debug-otp", (req, res) => {
+  if (process.env.NODE_ENV === "production") {
+    return res.status(403).json({ success: false, message: "Forbidden" });
+  }
+  const { email } = req.query;
+  const storedData = otpStore.get(email);
+  if (!storedData) {
+    return res.status(404).json({ success: false, message: "No OTP found" });
+  }
+  res.json({ success: true, otp: storedData.otp });
 });
 
 export default router;

@@ -23,17 +23,24 @@ const forgotSchema = z.object({
   email: z.string().email("Please enter a valid email"),
 });
 
-const resetSchema = z.object({
+const otpSchema = z.object({
   otp: z.string().length(6, "Reset code must be exactly 6 digits"),
+});
+
+const resetSchema = z.object({
   password: z.string().min(8, "Password must be at least 8 characters"),
+  confirmPassword: z.string().min(8, "Confirm password must be at least 8 characters"),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
 });
 
 export default function LoginPage() {
   const router = useRouter();
   const setCredentials = useAuthStore((state) => state.setCredentials);
-  const [view, setView] = useState("login"); // "login" | "forgot" | "reset"
+  const [view, setView] = useState("login"); // "login" | "forgot" | "verify-otp" | "reset"
   const [resetEmail, setResetEmail] = useState("");
-  const [demoCode, setDemoCode] = useState("");
+  const [resetOtp, setResetOtp] = useState("");
 
   const {
     register: registerLogin,
@@ -51,6 +58,15 @@ export default function LoginPage() {
     formState: { errors: errorsForgot, isSubmitting: isSubmittingForgot },
   } = useForm({
     resolver: zodResolver(forgotSchema),
+  });
+
+  const {
+    register: registerOtp,
+    handleSubmit: handleSubmitOtp,
+    setError: setErrorOtp,
+    formState: { errors: errorsOtp, isSubmitting: isSubmittingOtp },
+  } = useForm({
+    resolver: zodResolver(otpSchema),
   });
 
   const {
@@ -85,11 +101,10 @@ export default function LoginPage() {
       const response = await axios.post("/auth/forgot-password", data);
       if (response.data.success) {
         setResetEmail(data.email);
-        setDemoCode(response.data.otp);
-        toast.success("Reset code generated!", {
-          description: `Code: ${response.data.otp} (Logged to backend console).`,
+        toast.success("Verification code sent!", {
+          description: "Please check your email for the 6-digit verification code.",
         });
-        setView("reset");
+        setView("verify-otp");
       }
     } catch (err) {
       const message =
@@ -99,11 +114,32 @@ export default function LoginPage() {
     }
   };
 
+  const onOtpSubmit = async (data) => {
+    try {
+      const response = await axios.post("/auth/verify-otp", {
+        email: resetEmail,
+        otp: data.otp,
+      });
+      if (response.data.success) {
+        setResetOtp(data.otp);
+        toast.success("Code verified!", {
+          description: "Verification successful. Please enter your new password.",
+        });
+        setView("reset");
+      }
+    } catch (err) {
+      const message =
+        err.response?.data?.message || "Verification failed. Invalid or expired code.";
+      toast.error("Verification failed", { description: message });
+      setErrorOtp("root", { message });
+    }
+  };
+
   const onResetSubmit = async (data) => {
     try {
       const response = await axios.post("/auth/reset-password", {
         email: resetEmail,
-        otp: data.otp,
+        otp: resetOtp,
         newPassword: data.password,
       });
       if (response.data.success) {
@@ -111,7 +147,8 @@ export default function LoginPage() {
           description: "You can now sign in with your new password.",
         });
         setView("login");
-        setDemoCode("");
+        setResetEmail("");
+        setResetOtp("");
       }
     } catch (err) {
       const message =
@@ -251,56 +288,39 @@ export default function LoginPage() {
           </>
         )}
 
-        {view === "reset" && (
+        {view === "verify-otp" && (
           <>
             <div className="text-center mb-10">
               <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#f7f5ff] text-[#9670f8] mb-6 shadow-sm border border-white">
                 <Key size={26} />
               </div>
-              <h2 className="text-3xl font-bold tracking-tight text-stone-900">Reset Password</h2>
-              <p className="text-stone-500 mt-3 text-sm">Enter the reset code sent to your email ({resetEmail})</p>
+              <h2 className="text-3xl font-bold tracking-tight text-stone-900">Verify Code</h2>
+              <p className="text-stone-500 mt-3 text-sm">Enter the 6-digit reset code sent to your email ({resetEmail})</p>
             </div>
 
-            {demoCode && (
-              <div className="mb-4 p-4 rounded-lg bg-indigo-50 border border-indigo-100 text-stone-750 text-sm text-center">
-                <p className="font-semibold text-[#9670f8]">Demo Reset Code:</p>
-                <code className="text-lg font-bold tracking-widest">{demoCode}</code>
-                <p className="text-xs text-stone-500 mt-1">This code has also been printed in the backend console.</p>
-              </div>
-            )}
-
-            {errorsReset.root && (
+            {errorsOtp.root && (
               <div className="mb-4 p-4 rounded-lg bg-red-50 border border-red-100 text-red-600 text-sm">
-                {errorsReset.root.message}
+                {errorsOtp.root.message}
               </div>
             )}
 
-            <form onSubmit={handleSubmitReset(onResetSubmit)} className="space-y-6" noValidate>
+            <form onSubmit={handleSubmitOtp(onOtpSubmit)} className="space-y-6" noValidate>
               <Input
-                label="Reset Code (OTP)"
+                label="Verification Code (OTP)"
                 type="text"
                 icon={Mail}
                 placeholder="6-digit code"
-                error={errorsReset.otp?.message}
-                {...registerReset("otp")}
-              />
-
-              <Input
-                label="New Password"
-                type="password"
-                icon={Lock}
-                placeholder="••••••••"
-                error={errorsReset.password?.message}
-                {...registerReset("password")}
+                error={errorsOtp.otp?.message}
+                {...registerOtp("otp")}
               />
 
               <Button
                 type="submit"
-                loading={isSubmittingReset}
-                icon={!isSubmittingReset ? ArrowRight : undefined}
+                loading={isSubmittingOtp}
+                icon={!isSubmittingOtp ? ArrowRight : undefined}
                 className="w-full mt-8"
               >
-                {isSubmittingReset ? "Resetting password..." : "Reset Password"}
+                {isSubmittingOtp ? "Verifying..." : "Verify Code"}
               </Button>
             </form>
 
@@ -314,6 +334,53 @@ export default function LoginPage() {
                 Resend Code
               </button>
             </p>
+          </>
+        )}
+
+        {view === "reset" && (
+          <>
+            <div className="text-center mb-10">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#f7f5ff] text-[#9670f8] mb-6 shadow-sm border border-white">
+                <Lock size={26} />
+              </div>
+              <h2 className="text-3xl font-bold tracking-tight text-stone-900">Reset Password</h2>
+              <p className="text-stone-500 mt-3 text-sm">Set your new password below</p>
+            </div>
+
+            {errorsReset.root && (
+              <div className="mb-4 p-4 rounded-lg bg-red-50 border border-red-100 text-red-600 text-sm">
+                {errorsReset.root.message}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmitReset(onResetSubmit)} className="space-y-6" noValidate>
+              <Input
+                label="New Password"
+                type="password"
+                icon={Lock}
+                placeholder="••••••••"
+                error={errorsReset.password?.message}
+                {...registerReset("password")}
+              />
+
+              <Input
+                label="Confirm New Password"
+                type="password"
+                icon={Lock}
+                placeholder="••••••••"
+                error={errorsReset.confirmPassword?.message}
+                {...registerReset("confirmPassword")}
+              />
+
+              <Button
+                type="submit"
+                loading={isSubmittingReset}
+                icon={!isSubmittingReset ? ArrowRight : undefined}
+                className="w-full mt-8"
+              >
+                {isSubmittingReset ? "Resetting password..." : "Reset Password"}
+              </Button>
+            </form>
           </>
         )}
       </motion.div>
