@@ -24,4 +24,9 @@ export const env = {
   CLIENT_URL: process.env.CLIENT_URL,
   NODE_ENV: process.env.NODE_ENV || "development",
   PORT: parseInt(process.env.PORT || "5000", 10),
+  SMTP_HOST: process.env.SMTP_HOST,
+  SMTP_PORT: parseInt(process.env.SMTP_PORT || "587", 10),
+  SMTP_USER: process.env.SMTP_USER,
+  SMTP_PASS: process.env.SMTP_PASS,
+  SMTP_FROM: process.env.SMTP_FROM || '"ClearTax Support" <support@cleartax.com>',
 };
