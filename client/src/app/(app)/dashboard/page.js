@@ -190,7 +190,7 @@ export default function DashboardPage() {
           <motion.div
             key={stat.name}
             variants={itemVariants}
-            className={`border rounded-2xl p-6 relative overflow-hidden bg-white hover:border-[#5a38ef]/10 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 group`}
+            className={`border rounded-2xl p-6 relative overflow-hidden bg-white hover:border-[#5a38ef]/10 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:scale-[1.03] active:scale-[0.98] transition-all duration-300 group`}
           >
             <div className="flex justify-between items-start mb-3">
               <p className="text-[10px] font-bold text-stone-400 tracking-wider uppercase mt-1">{stat.name}</p>
@@ -226,16 +226,20 @@ export default function DashboardPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4">
-            {recentBatches.map((batch) => {
+            {recentBatches.map((batch, index) => {
               const percentage = batch.totalRows > 0
                 ? Math.round((batch.processedRows / batch.totalRows) * 100)
                 : 0;
 
               return (
-                <div
+                <motion.div
                   key={batch.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-20px" }}
+                  transition={{ duration: 0.4, delay: index * 0.05 }}
                   onClick={() => router.push(`/results?jobId=${batch.id}`)}
-                  className="bg-white border border-[#5a38ef]/5 rounded-2xl p-5 hover:border-[#5a38ef]/15 hover:shadow-md transition-all duration-300 cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm group"
+                  className="bg-white border border-[#5a38ef]/5 rounded-2xl p-5 hover:border-[#5a38ef]/15 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm group"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-11 h-11 rounded-xl bg-indigo-50/50 flex items-center justify-center text-[#5a38ef] group-hover:bg-[#5a38ef] group-hover:text-white transition-colors duration-300">
@@ -285,7 +289,7 @@ export default function DashboardPage() {
                       <ChevronRight size={16} strokeWidth={2.2} />
                     </div>
                   </div>
-                </div>
+                </motion.div>
               );
             })}
           </div>

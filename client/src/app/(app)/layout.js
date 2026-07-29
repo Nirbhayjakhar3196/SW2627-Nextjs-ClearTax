@@ -86,10 +86,10 @@ export default function AppLayout({ children }) {
   return (
     <div className="min-h-screen bg-[#faf9ff] flex font-sans text-stone-900">
       {/* Sidebar */}
-      <div className="w-64 flex flex-col border-r border-[#5a38ef]/5 bg-white z-10 h-screen sticky top-0 shadow-sm">
-        <div className="h-16 flex items-center px-6 gap-3 border-b border-stone-50">
+      <div className="w-64 flex flex-col border-r border-slate-800/40 bg-[#0d0c1d] text-slate-300 z-10 h-screen sticky top-0 shadow-xl">
+        <div className="h-16 flex items-center px-6 gap-3 border-b border-slate-800/40">
           <span className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#5a38ef] to-[#ff8c70] text-white flex items-center justify-center font-bold text-sm shadow-md shadow-indigo-500/10">CT</span>
-          <div className="text-lg font-bold text-[#1c1834] tracking-tight font-outfit">ClearTax</div>
+          <div className="text-lg font-bold text-white tracking-tight font-outfit">ClearTax</div>
         </div>
         <div className="flex-1 py-6 px-4 space-y-1.5 overflow-y-auto">
           {navigation.map((item) => {
@@ -98,33 +98,33 @@ export default function AppLayout({ children }) {
               <Link
                 key={item.name}
                 href={item.href}
-                className={`relative flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 ${
+                className={`relative flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 group ${
                   isActive
-                    ? "bg-[#5a38ef]/5 text-[#5a38ef] font-semibold"
-                    : "text-stone-500 hover:bg-stone-50/80 hover:text-stone-900"
+                    ? "bg-gradient-to-r from-[#5a38ef] to-[#7f63f4] text-white font-semibold shadow-[0_4px_18px_rgba(90,56,239,0.3)]"
+                    : "text-slate-400 hover:bg-white/5 hover:text-slate-100"
                 }`}
               >
                 {isActive && (
                   <motion.span
                     layoutId="activeIndicator"
-                    className="absolute left-0 top-1/4 bottom-1/4 w-1 bg-[#5a38ef] rounded-r-full"
+                    className="absolute left-0 top-1.5 bottom-1.5 w-1.5 bg-gradient-to-b from-[#ff8c70] to-[#5a38ef] rounded-r-full"
                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
                   />
                 )}
-                <item.icon size={18} className={`mr-3 ${isActive ? "text-[#5a38ef]" : "text-stone-400"}`} strokeWidth={isActive ? 2.2 : 1.8} />
+                <item.icon size={18} className={`mr-3 ${isActive ? "text-white" : "text-slate-400 group-hover:text-slate-200"}`} strokeWidth={isActive ? 2.2 : 1.8} />
                 <span className="text-[13.5px]">{item.name}</span>
               </Link>
             );
           })}
         </div>
-        <div className="p-4 border-t border-stone-50 bg-stone-50/30">
+        <div className="p-4 border-t border-slate-800/40 bg-slate-900/10">
           {mounted && user ? (
             <div className="flex items-center mb-4 px-2">
               {profilePicture ? (
                 <img
                   src={profilePicture}
                   alt={displayName}
-                  className="w-9 h-9 rounded-full object-cover border border-stone-100"
+                  className="w-9 h-9 rounded-full object-cover border border-slate-700"
                 />
               ) : (
                 <div className="w-9 h-9 rounded-full bg-[#5a38ef]/10 flex items-center justify-center text-[#5a38ef] font-bold text-sm border border-[#5a38ef]/5 shadow-inner">
@@ -132,16 +132,16 @@ export default function AppLayout({ children }) {
                 </div>
               )}
               <div className="ml-3 overflow-hidden">
-                <p className="text-sm font-semibold text-stone-900 truncate">{displayName}</p>
-                <p className="text-xs text-stone-405 truncate">{displayEmail}</p>
+                <p className="text-sm font-semibold text-white truncate">{displayName}</p>
+                <p className="text-xs text-slate-400 truncate">{displayEmail}</p>
               </div>
             </div>
           ) : (
             <div className="flex items-center mb-4 px-2 animate-pulse">
-              <div className="w-9 h-9 rounded-full bg-stone-100" />
+              <div className="w-9 h-9 rounded-full bg-slate-850" />
               <div className="ml-3 space-y-1.5 flex-1">
-                <div className="h-3 bg-stone-100 rounded w-20" />
-                <div className="h-2.5 bg-stone-100 rounded w-28" />
+                <div className="h-3 bg-slate-800 rounded w-20" />
+                <div className="h-2.5 bg-slate-800 rounded w-28" />
               </div>
             </div>
           )}
@@ -150,7 +150,7 @@ export default function AppLayout({ children }) {
               clearUser();
               router.push("/");
             }}
-            className="flex items-center text-red-500 hover:text-red-600 transition-colors px-2 py-1.5 hover:bg-red-50/55 rounded-lg w-full text-left"
+            className="flex items-center text-red-400 hover:text-red-300 transition-colors px-2 py-1.5 hover:bg-red-500/10 rounded-lg w-full text-left"
           >
             <LogOut size={14} className="mr-2" />
             <span className="text-xs font-semibold">Log out</span>
@@ -159,7 +159,19 @@ export default function AppLayout({ children }) {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 bg-[#faf9ff]">
+      <div className="flex-1 flex flex-col min-w-0 bg-[#faf9ff] relative overflow-hidden">
+        {/* Color changing ambient backdrop glow */}
+        <motion.div 
+          animate={{
+            background: [
+              "radial-gradient(circle at 80% 20%, rgba(90,56,239,0.05) 0%, transparent 50%), radial-gradient(circle at 20% 80%, rgba(255,140,112,0.03) 0%, transparent 50%)",
+              "radial-gradient(circle at 80% 20%, rgba(255,140,112,0.05) 0%, transparent 50%), radial-gradient(circle at 20% 80%, rgba(90,56,239,0.03) 0%, transparent 50%)",
+              "radial-gradient(circle at 80% 20%, rgba(90,56,239,0.05) 0%, transparent 50%), radial-gradient(circle at 20% 80%, rgba(255,140,112,0.03) 0%, transparent 50%)"
+            ]
+          }}
+          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute inset-0 pointer-events-none z-0"
+        />
         {/* Top Header */}
         <header className="h-16 border-b border-stone-100 px-8 flex justify-between items-center sticky top-0 bg-white/80 backdrop-blur-md z-20">
           <div className="text-sm font-bold text-stone-800 tracking-tight font-outfit">
@@ -234,10 +246,16 @@ export default function AppLayout({ children }) {
           )}
         </header>
 
-        <main className="flex-1 overflow-y-auto p-8 lg:p-10">
-          <div className="max-w-5xl mx-auto">
+        <main className="flex-1 overflow-y-auto p-8 lg:p-10 z-10">
+          <motion.div
+            key={pathname}
+            initial={{ opacity: 0, scale: 0.97, y: 8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+            className="max-w-5xl mx-auto"
+          >
             {children}
-          </div>
+          </motion.div>
         </main>
       </div>
     </div>
