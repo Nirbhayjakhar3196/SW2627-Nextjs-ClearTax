@@ -4,11 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "predev": "node ../scripts/kill-ports.js",
+    "predev": "echo Docker Mode",
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
     "build": "prisma generate",
-    "postinstall": "prisma generate",
     "prisma:generate": "prisma generate",
     "prisma:init": "prisma init --datasource-provider postgresql",
     "prisma:format": "prisma format",
