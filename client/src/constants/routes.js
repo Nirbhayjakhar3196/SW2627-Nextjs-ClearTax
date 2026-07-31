@@ -6,7 +6,6 @@ export const APP_ROUTES = {
   INVOICES: "/invoices",
   REPORTS: "/reports",
   PROFILE: "/profile",
-  SETTINGS: "/settings",
   LOGIN: "/login",
   SIGNUP: "/signup",
   NOTIFICATIONS: "/notifications",

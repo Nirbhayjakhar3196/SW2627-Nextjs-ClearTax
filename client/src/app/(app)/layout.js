@@ -80,7 +80,6 @@ export default function AppLayout({ children }) {
     { name: "Reports", href: "/reports", icon: History },
     { name: "Library", href: "/library", icon: FileText },
     { name: "Profile", href: "/profile", icon: User },
-    { name: "Settings", href: "/settings", icon: Settings },
   ];
 
   return (
@@ -217,14 +216,6 @@ export default function AppLayout({ children }) {
                   >
                     <User size={14} className="mr-2 text-stone-400" />
                     <span>My Profile</span>
-                  </Link>
-                  <Link
-                    href="/settings"
-                    onClick={() => setDropdownOpen(false)}
-                    className="flex items-center px-4 py-2 text-sm text-stone-700 hover:bg-stone-50 transition-colors"
-                  >
-                    <Settings size={14} className="mr-2 text-stone-400" />
-                    <span>Account Settings</span>
                   </Link>
                   <hr className="my-1 border-stone-50" />
                   <button
