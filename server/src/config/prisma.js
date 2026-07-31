@@ -1,7 +1,14 @@
 import { PrismaClient } from "@prisma/client";
 import { env } from "./env.js";
 
+// Global object reference to reuse Prisma client instance during hot-reloading
 const globalForPrisma = globalThis;
+
+// Initialize Prisma client with database options
+let logLevel = ["error"];
+if (env.NODE_ENV === "development") {
+  logLevel = ["query", "error", "warn"];
+}
 
 export const prisma =
   globalForPrisma.prisma ||
@@ -11,20 +18,21 @@ export const prisma =
         url: env.DATABASE_URL,
       },
     },
-    log: env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
+    log: logLevel,
   });
 
+// Store Prisma instance globally in development to prevent duplicate connections
 if (env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;
 }
 
 /**
- * Verifies database connection.
+ * Connects Prisma client to the PostgreSQL database.
  */
 export async function connectPrisma() {
   try {
     await prisma.$connect();
-    console.log("✅ Database Connected");
+    console.log("✅ Database Connected Successfully");
   } catch (error) {
     console.error("❌ Database Connection Error:", error.message);
     throw error;
@@ -32,7 +40,7 @@ export async function connectPrisma() {
 }
 
 /**
- * Closes the Prisma database client connection gracefully.
+ * Disconnects Prisma client connection gracefully during server shutdown.
  */
 export async function disconnectPrisma() {
   try {
@@ -42,3 +50,4 @@ export async function disconnectPrisma() {
     console.error("❌ Database Disconnection Error:", error.message);
   }
 }
+

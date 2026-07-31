@@ -10,14 +10,15 @@ import {
 
 /**
  * Creates and registers the BullMQ worker for background invoice processing.
- * This worker processes jobs in the 'invoice-processing' queue, parses CSV files,
- * validates invoices, stores them in the database, and tracks progress.
  */
 export function createInvoiceWorker() {
   const worker = new Worker(
     "invoice-processing",
     async (job) => {
-      const { uploadBatchId, filePath, userId } = job.data;
+      const uploadBatchId = job.data.uploadBatchId;
+      const filePath = job.data.filePath;
+      const userId = job.data.userId;
+
       console.log(`[Worker] Starting job ${job.id} for Batch ${uploadBatchId}`);
 
       try {
@@ -26,31 +27,40 @@ export function createInvoiceWorker() {
           throw new Error(`CSV file not found at path: ${filePath}`);
         }
 
-        // 2. Read file contents
+        // 2. Read file contents from disk
         const fileContent = fs.readFileSync(filePath, "utf8");
         if (!fileContent || fileContent.trim().length === 0) {
           throw new Error("Uploaded CSV file is empty");
         }
 
-        // 3. Parse CSV using PapaParse
+        // 3. Parse CSV file text using PapaParse library
         const parseResult = Papa.parse(fileContent, {
           header: true,
           skipEmptyLines: true,
-          transformHeader: (header) => header.trim(),
+          transformHeader: function (header) {
+            return header.trim();
+          },
         });
 
         const headers = parseResult.meta.fields || [];
-        
-        // 4. Validate headers (Invalid CSV Columns check)
-        const hasInvoiceNum = headers.some((h) =>
-          ["invoicenumber", "invoice number", "id", "invoice_number"].includes(h.toLowerCase())
-        );
-        const hasVendor = headers.some((h) =>
-          ["vendor", "customer", "supplier", "vendorname", "vendor name"].includes(h.toLowerCase())
-        );
-        const hasAmount = headers.some((h) =>
-          ["amount", "price", "total"].includes(h.toLowerCase())
-        );
+
+        // 4. Validate presence of required CSV headers
+        let hasInvoiceNum = false;
+        let hasVendor = false;
+        let hasAmount = false;
+
+        for (let i = 0; i < headers.length; i++) {
+          const h = headers[i].toLowerCase();
+          if (h === "invoicenumber" || h === "invoice number" || h === "id" || h === "invoice_number") {
+            hasInvoiceNum = true;
+          }
+          if (h === "vendor" || h === "customer" || h === "supplier" || h === "vendorname" || h === "vendor name") {
+            hasVendor = true;
+          }
+          if (h === "amount" || h === "price" || h === "total") {
+            hasAmount = true;
+          }
+        }
 
         if (headers.length === 0 || (!hasInvoiceNum && !hasVendor && !hasAmount)) {
           throw new Error("Invalid CSV Columns: File must contain headers for Invoice Number, Vendor, and Amount");
@@ -59,9 +69,9 @@ export function createInvoiceWorker() {
         const parsedRows = parseResult.data;
         const totalRows = parsedRows.length;
 
-        // 5. Update Batch in Database with total rows and transition status to PROCESSING
+        // 5. Update Batch status to PROCESSING in database
         await updateUploadBatchProgress(uploadBatchId, {
-          totalRows,
+          totalRows: totalRows,
           status: "PROCESSING",
           processedRows: 0,
           successfulRows: 0,
@@ -75,20 +85,20 @@ export function createInvoiceWorker() {
         // 6. Process each invoice row sequentially
         for (let i = 0; i < totalRows; i++) {
           const row = parsedRows[i];
-          
-          // Extract expected fields
-          const rawInvoiceNumber = row.invoiceNumber || row["Invoice Number"] || row.invoice_number || row.id || row.ID || "";
-          const rawVendor = row.vendor || row.Vendor || row.customer || row.Customer || row.supplier || row.vendorname || row["Vendor Name"] || "";
-          const rawAmount = parseFloat(row.amount || row.Amount || row.price || row.Price || row.total || NaN);
-          
+
+          // Extract raw field values from row object
+          let rawInvoiceNumber = row.invoiceNumber || row["Invoice Number"] || row.invoice_number || row.id || row.ID || "";
+          let rawVendor = row.vendor || row.Vendor || row.customer || row.Customer || row.supplier || row.vendorname || row["Vendor Name"] || "";
+          let rawAmount = parseFloat(row.amount || row.Amount || row.price || row.Price || row.total || NaN);
+
           let invoiceNumber = String(rawInvoiceNumber).trim();
           let vendor = String(rawVendor).trim();
           let amount = isNaN(rawAmount) ? 0 : rawAmount;
-          
+
           let status = "MATCHED";
           let errorMessage = null;
 
-          // Phase 6 validation checks
+          // Validation rules
           if (!invoiceNumber) {
             status = "FAILED";
             errorMessage = "Missing Invoice Number";
@@ -102,14 +112,14 @@ export function createInvoiceWorker() {
             status = "FAILED";
             errorMessage = "Duplicate Invoice Number";
           } else {
-            // Track duplicates within the batch
+            // Track seen invoice numbers in current batch
             seenInvoiceNumbers.add(invoiceNumber);
-            
-            // Check for duplicates database-wide for the same user
+
+            // Check database for existing invoice number for the same user
             if (userId) {
               const existingDbInvoice = await prisma.invoice.findFirst({
                 where: {
-                  invoiceNumber,
+                  invoiceNumber: invoiceNumber,
                   uploadBatch: {
                     userId: parseInt(userId),
                   },
@@ -122,12 +132,13 @@ export function createInvoiceWorker() {
             }
           }
 
-          // Check vendor match status / mismatches
+          // Check vendor rules for mismatch or failure
           if (status !== "FAILED") {
-            if (vendor.toLowerCase().includes("globex")) {
+            const vendorLower = vendor.toLowerCase();
+            if (vendorLower.includes("globex")) {
               status = "MISMATCHED";
               errorMessage = "Amount difference detected";
-            } else if (vendor.toLowerCase().includes("initech")) {
+            } else if (vendorLower.includes("initech")) {
               status = "FAILED";
               errorMessage = "Invalid invoice format";
             }
@@ -139,28 +150,28 @@ export function createInvoiceWorker() {
             successfulCount++;
           }
 
-          // Create invoice in the database
+          // Create invoice record in database
           await createInvoice({
             invoiceNumber: invoiceNumber || `ERR-INV-${1000 + i}`,
             vendor: vendor || "Unknown Vendor",
-            amount,
-            status,
-            errorMessage,
-            uploadBatchId,
+            amount: amount,
+            status: status,
+            errorMessage: errorMessage,
+            uploadBatchId: uploadBatchId,
           });
 
-          // Update batch progress row-by-row in the database
+          // Update batch progress after every row processed
           await updateUploadBatchProgress(uploadBatchId, {
             processedRows: i + 1,
             successfulRows: successfulCount,
             failedRows: failedCount,
           });
 
-          // Simulate processing latency to show transition progress
+          // Brief delay simulation for progressive progress updates
           await new Promise((resolve) => setTimeout(resolve, 150));
         }
 
-        // 7. Update batch status to COMPLETED
+        // 7. Mark batch status as COMPLETED
         await updateUploadBatchProgress(uploadBatchId, {
           status: "COMPLETED",
         });
@@ -168,15 +179,14 @@ export function createInvoiceWorker() {
         console.log(`[Worker] Completed processing Batch ${uploadBatchId}. Total: ${totalRows}, Success: ${successfulCount}, Failed: ${failedCount}`);
       } catch (error) {
         console.error(`[Worker] Error processing Batch ${uploadBatchId}:`, error);
-        
-        // Update batch status to FAILED for file-level exceptions
+
+        // Mark batch as FAILED if error occurs before or during processing
         await updateUploadBatchProgress(uploadBatchId, {
           status: "FAILED",
         }).catch(() => {});
-        
+
         throw error;
       } finally {
-        // Keeping CSV file on disk to support future retries
         console.log(`[Worker] Processing finished for batch: ${uploadBatchId}`);
       }
     },
@@ -196,3 +206,4 @@ export function createInvoiceWorker() {
 
   return worker;
 }
+

@@ -3,13 +3,14 @@ import path from "path";
 import nodemailer from "nodemailer";
 import { env } from "../config/env.js";
 
-let transporter;
+// Initialize Nodemailer SMTP transporter if email credentials are configured
+let transporter = null;
 
 if (env.SMTP_HOST && env.SMTP_USER && env.SMTP_PASS) {
   transporter = nodemailer.createTransport({
     host: env.SMTP_HOST,
     port: env.SMTP_PORT,
-    secure: env.SMTP_PORT === 465, // true for 465, false for other ports
+    secure: env.SMTP_PORT === 465, // True for port 465 (SSL), false for other ports (TLS)
     auth: {
       user: env.SMTP_USER,
       pass: env.SMTP_PASS,
@@ -18,9 +19,7 @@ if (env.SMTP_HOST && env.SMTP_USER && env.SMTP_PASS) {
 }
 
 /**
- * Sends a password reset OTP code to the user's email.
- * @param {string} toEmail 
- * @param {string} otp 
+ * Sends a password reset OTP code to the specified email address.
  */
 export async function sendResetEmail(toEmail, otp) {
   const mailOptions = {
@@ -54,7 +53,7 @@ export async function sendResetEmail(toEmail, otp) {
     `,
   };
 
-  // Write to a local debug file for developer convenience (bypasses console buffering)
+  // Write OTP to local file for easy developer debugging
   try {
     const debugFilePath = path.join(process.cwd(), "otp_debug.log");
     fs.writeFileSync(debugFilePath, `Email: ${toEmail}\nOTP: ${otp}\nTimestamp: ${new Date().toISOString()}\n`);
@@ -62,18 +61,19 @@ export async function sendResetEmail(toEmail, otp) {
     console.error("Failed to write OTP debug log:", err.message);
   }
 
+  // If SMTP is available, send the email via Nodemailer
   if (transporter) {
     try {
       const info = await transporter.sendMail(mailOptions);
       console.log(`[Email] Reset code sent to ${toEmail}: ${info.messageId}`);
       return info;
     } catch (err) {
-        console.error("[Email] SMTP Error:", err);
-        throw err;
-      }
+      console.error("[Email] SMTP Error:", err);
+      throw err;
+    }
   }
 
-  // Fallback log to terminal
+  // Fallback log to terminal if SMTP is not configured
   console.log(`
 ========================================================================
 [PASSWORD RESET EMAIL FALLBACK]
@@ -83,3 +83,4 @@ OTP: ${otp}
 `);
   return { message: "Printed to console fallback" };
 }
+

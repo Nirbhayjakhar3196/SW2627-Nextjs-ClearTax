@@ -5,34 +5,46 @@ import path from "path";
 // Load Environment Configuration
 import { env } from "./config/env.js";
 
-// Load Database and Redis Clients
+// Load Database and Redis Connection Handlers
 import { connectPrisma, disconnectPrisma, prisma } from "./config/prisma.js";
 import { closeRedis } from "./config/redis.js";
 
-// Load Routes
+// Load Application Route Handlers
 import authRoutes from "./routes/auth.routes.js";
 import uploadRoutes from "./routes/upload.routes.js";
 
-// Load Worker Creator
+// Load Background Worker Factory
 import { createInvoiceWorker } from "./workers/invoice.worker.js";
 
-// Initialize Express App
+// Initialize Express Application Instance
 const app = express();
 const PORT = env.PORT;
 
-// Middleware
+// Configure allowed frontend origins for CORS security
 const allowedOrigins = [
   env.CLIENT_URL,
   "http://localhost:3000"
-].filter(Boolean);
+];
 
+// Configure CORS (Cross-Origin Resource Sharing) middleware
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin) return callback(null, true);
-      const isAllowed = allowedOrigins.includes(origin) || 
-                        origin.endsWith(".vercel.app") || 
-                        origin.startsWith("http://localhost:");
+      // Allow server-to-server or non-browser requests (e.g. Postman or test scripts)
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      // Check if origin matches allowed localhost or production domain pattern
+      let isAllowed = false;
+      if (allowedOrigins.includes(origin)) {
+        isAllowed = true;
+      } else if (origin.endsWith(".vercel.app")) {
+        isAllowed = true;
+      } else if (origin.startsWith("http://localhost:")) {
+        isAllowed = true;
+      }
+
       if (isAllowed) {
         callback(null, true);
       } else {
@@ -44,27 +56,33 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
+// Middleware to parse incoming JSON payloads and URL-encoded bodies
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve avatars folder statically
+// Serve profile picture avatars statically from public/avatars folder
 app.use("/avatars", express.static(path.join(process.cwd(), "public/avatars")));
 
-// Mount REST API Endpoints
+// Mount API route modules
 app.use("/api/auth", authRoutes);
 app.use("/api", uploadRoutes);
 
-// GET /api/progress (placeholder)
+// GET /api/progress - Simple progress status route placeholder
 app.get("/api/progress", (req, res) => {
   res.json({ ok: true, message: "Progress API placeholder" });
 });
 
-// GET /api/health
+// GET /api/health - Health check endpoint for server uptime verification
 app.get("/api/health", (req, res) => {
-  res.json({ ok: true, service: "backend-api", timestamp: new Date().toISOString() });
+  res.json({
+    ok: true,
+    service: "backend-api",
+    timestamp: new Date().toISOString(),
+  });
 });
 
-// GET /api/test-db (global sanity check)
+// GET /api/test-db - Health check endpoint for database connectivity verification
 app.get("/api/test-db", async (req, res) => {
   try {
     await prisma.$queryRaw`SELECT 1`;
@@ -80,29 +98,29 @@ app.get("/api/test-db", async (req, res) => {
   }
 });
 
-// Express Server and Worker References
-let serverListener;
-let invoiceWorker;
+// Global server listener and worker references
+let serverListener = null;
+let invoiceWorker = null;
 
 /**
- * Bootstrap function to start backend connections and services.
+ * Main application bootstrap function.
+ * Connects database, starts background BullMQ worker, and launches Express web server.
  */
 async function bootstrap() {
   try {
     console.log("[Bootstrap] Starting server setup...");
 
-    // 1. Connect Prisma Database Client
+    // 1. Connect database client
     await connectPrisma();
 
-    // 2. Start Background BullMQ Worker
+    // 2. Start background worker for CSV processing
     invoiceWorker = createInvoiceWorker();
     console.log("[Bootstrap] BullMQ Worker started successfully.");
 
-    // 3. Start Express Web Server Listening
+    // 3. Start listening for HTTP requests on configured PORT
     serverListener = app.listen(PORT, () => {
       console.log(`[Bootstrap] REST API Server running on port ${PORT}`);
     });
-
   } catch (error) {
     console.error("[Bootstrap] Crash during startup:", error);
     await shutdown(1);
@@ -110,13 +128,13 @@ async function bootstrap() {
 }
 
 /**
- * Clean Graceful Shutdown Handler.
- * Shuts down Express, BullMQ workers, Redis connections, and Prisma clients.
+ * Graceful shutdown handler.
+ * Closes HTTP server, BullMQ worker, Redis client, and database connection.
  */
 async function shutdown(exitCode = 0) {
   console.log("\n[Shutdown] Initiating graceful shutdown...");
 
-  // 1. Stop accepting new requests on Express
+  // 1. Stop accepting new HTTP requests
   if (serverListener) {
     await new Promise((resolve) => {
       serverListener.close(() => {
@@ -126,7 +144,7 @@ async function shutdown(exitCode = 0) {
     });
   }
 
-  // 2. Close BullMQ Worker
+  // 2. Close BullMQ background worker
   if (invoiceWorker) {
     try {
       await invoiceWorker.close();
@@ -136,17 +154,17 @@ async function shutdown(exitCode = 0) {
     }
   }
 
-  // 3. Close Main Redis Client
+  // 3. Close main Redis client connection
   await closeRedis();
 
-  // 4. Disconnect Database Client
+  // 4. Disconnect Prisma database client
   await disconnectPrisma();
 
   console.log("[Shutdown] Graceful shutdown complete. Exiting.");
   process.exit(exitCode);
 }
 
-// Bind System Signals
+// Bind process termination signals for graceful exit
 process.on("SIGINT", () => {
   console.log("[Process] Received SIGINT (Ctrl+C).");
   shutdown(0);
@@ -157,18 +175,17 @@ process.on("SIGTERM", () => {
   shutdown(0);
 });
 
-// Catch Unhandled Exceptions
+// Catch uncaught errors to prevent dirty crashes
 process.on("uncaughtException", (error) => {
   console.error("❌ [Process] Uncaught Exception occurred:", error);
-  // Log and shutdown gracefully to avoid socket/connection leaks
   shutdown(1);
 });
 
 process.on("unhandledRejection", (reason, promise) => {
   console.error("❌ [Process] Unhandled Rejection at:", promise, "reason:", reason);
-  // Log and shutdown gracefully
   shutdown(1);
 });
 
-// Run Bootstrap
+// Start the backend server
 bootstrap();
+

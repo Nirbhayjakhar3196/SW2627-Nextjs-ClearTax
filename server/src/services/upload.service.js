@@ -14,9 +14,7 @@ import { prisma } from "../config/prisma.js";
 
 const uploadService = {
   /**
-   * Processes a File Object received from request.formData()
-   * @param {File} file - Standard Web API File object
-   * @param {number|string|null} userId - Optional User ID
+   * Processes a Web API File Object from request payload.
    */
   async processFileUpload(file, userId = null) {
     if (!file || typeof file.text !== "function") {
@@ -26,30 +24,30 @@ const uploadService = {
     const originalFileName = file.name;
     const fileName = `${Date.now()}_${originalFileName}`;
 
-    // 1. Ensure uploads directory exists
+    // 1. Ensure uploads directory exists on disk
     const uploadsDir = path.join(process.cwd(), "uploads");
     if (!fs.existsSync(uploadsDir)) {
       fs.mkdirSync(uploadsDir, { recursive: true });
     }
 
-    // 2. Save file to disk
+    // 2. Save file buffer to local disk
     const buffer = Buffer.from(await file.arrayBuffer());
     const filePath = path.join(uploadsDir, fileName);
     await fs.promises.writeFile(filePath, buffer);
 
-    // 3. Create initial UploadBatch in database (in PENDING status, 0 rows processed/saved)
+    // 3. Create initial UploadBatch record in database with PENDING status
     const batchResult = await createUploadBatch({
-      fileName,
-      originalFileName,
+      fileName: fileName,
+      originalFileName: originalFileName,
       totalRows: 0,
-      userId,
+      userId: userId,
     });
 
-    // 4. Add job to BullMQ queue
+    // 4. Add background job to BullMQ queue for async processing
     const job = await invoiceQueue.add("process-upload", {
       uploadBatchId: batchResult.id,
-      filePath,
-      userId,
+      filePath: filePath,
+      userId: userId,
     });
 
     console.log("Job Added:", job.id, job.name, "for batch:", batchResult.id);
@@ -61,6 +59,9 @@ const uploadService = {
     };
   },
 
+  /**
+   * Retrieves status and invoice items for a single batch by ID.
+   */
   async getUploadStatus(uploadId, userId) {
     const batch = await getUploadBatchById(uploadId);
     if (!batch) {
@@ -82,26 +83,29 @@ const uploadService = {
     };
   },
 
+  /**
+   * Retrieves all upload batches for a specific user.
+   */
   async getAllUploads(userId) {
     return await getAllUploadBatches(userId);
   },
 
   /**
-   * Retrieves upload batches with pagination, sorting, search, and filtering
+   * Retrieves upload batches with pagination, sorting, and search.
    */
   async getUploadsPaged(options) {
     return await getUploadBatchesWithPagination(options);
   },
 
   /**
-   * Retrieves invoices with pagination, sorting, search, and filtering
+   * Retrieves invoices with pagination, sorting, and search.
    */
   async getInvoicesPaged(options) {
     return await getInvoicesWithPagination(options);
   },
 
   /**
-   * Deletes old invoice records, resets progress metrics, and re-triggers background processing.
+   * Resets batch status, clears previous invoice records, and re-queues job for processing.
    */
   async retryUploadBatch(uploadBatchId, userId) {
     const batch = await getUploadBatchById(uploadBatchId);
@@ -112,10 +116,10 @@ const uploadService = {
       throw new Error("Forbidden");
     }
 
-    // 1. Delete associated invoices
+    // 1. Delete associated invoice records from previous run
     await deleteInvoicesByBatchId(batch.id);
 
-    // 2. Reset progress counters
+    // 2. Reset batch progress counters in database
     const resetBatch = await updateUploadBatchProgress(batch.id, {
       status: "PENDING",
       processedRows: 0,
@@ -123,11 +127,11 @@ const uploadService = {
       failedRows: 0,
     });
 
-    // 3. Re-queue the job in BullMQ
+    // 3. Re-queue background job in BullMQ
     const filePath = path.join(process.cwd(), "uploads", batch.fileName);
     const job = await invoiceQueue.add("process-upload", {
       uploadBatchId: batch.id,
-      filePath,
+      filePath: filePath,
       userId: batch.userId,
     });
 
@@ -141,13 +145,13 @@ const uploadService = {
   },
 
   /**
-   * Retrieves dashboard statistics and reports charts data based on dateRange selection.
+   * Computes dashboard metrics and chart analytics for current and previous time periods.
    */
   async getReportsStatistics(userId, dateRange) {
     const now = new Date();
     const ranges = getDateRanges(dateRange, now);
 
-    // 1. Fetch data for current period
+    // 1. Fetch invoices for current date range
     const currentInvoices = await prisma.invoice.findMany({
       where: {
         uploadBatch: {
@@ -164,6 +168,7 @@ const uploadService = {
       },
     });
 
+    // Fetch batches completed in current date range
     const currentBatches = await prisma.uploadBatch.findMany({
       where: {
         userId: parseInt(userId),
@@ -180,7 +185,7 @@ const uploadService = {
       },
     });
 
-    // 2. Fetch data for previous period
+    // 2. Fetch invoices for previous date range
     const previousInvoices = await prisma.invoice.findMany({
       where: {
         uploadBatch: {
@@ -197,6 +202,7 @@ const uploadService = {
       },
     });
 
+    // Fetch batches completed in previous date range
     const previousBatches = await prisma.uploadBatch.findMany({
       where: {
         userId: parseInt(userId),
@@ -213,67 +219,123 @@ const uploadService = {
       },
     });
 
-    // 3. Compute stats for current period
+    // 3. Compute stats for current period using explicit loops
     const curTotal = currentInvoices.length;
-    const curMatched = currentInvoices.filter((i) => i.status === "MATCHED").length;
-    const curMismatched = currentInvoices.filter((i) => i.status === "MISMATCHED").length;
-    const curFailed = currentInvoices.filter((i) => i.status === "FAILED").length;
-    const curMatchRate = curTotal > 0 ? (curMatched / curTotal) * 100 : 0;
+    let curMatched = 0;
+    let curMismatched = 0;
+    let curFailed = 0;
+
+    for (let i = 0; i < currentInvoices.length; i++) {
+      const status = currentInvoices[i].status;
+      if (status === "MATCHED") {
+        curMatched++;
+      } else if (status === "MISMATCHED") {
+        curMismatched++;
+      } else if (status === "FAILED") {
+        curFailed++;
+      }
+    }
+
+    let curMatchRate = 0;
+    if (curTotal > 0) {
+      curMatchRate = (curMatched / curTotal) * 100;
+    }
 
     let curTimeMs = 0;
     let curRowsSum = 0;
-    currentBatches.forEach((b) => {
-      const dur = b.updatedAt.getTime() - b.createdAt.getTime();
-      if (dur > 0 && b.totalRows > 0) {
-        curTimeMs += dur;
+    for (let i = 0; i < currentBatches.length; i++) {
+      const b = currentBatches[i];
+      const duration = b.updatedAt.getTime() - b.createdAt.getTime();
+      if (duration > 0 && b.totalRows > 0) {
+        curTimeMs += duration;
         curRowsSum += b.totalRows;
       }
-    });
-    const curAvgTime = curRowsSum > 0 ? (curTimeMs / curRowsSum) / 1000 : 0.15; // default fallback 0.15s per invoice
+    }
+
+    let curAvgTime = 0.15; // default fallback 0.15s per invoice
+    if (curRowsSum > 0) {
+      curAvgTime = curTimeMs / curRowsSum / 1000;
+    }
 
     // 4. Compute stats for previous period
     const prevTotal = previousInvoices.length;
-    const prevMatched = previousInvoices.filter((i) => i.status === "MATCHED").length;
-    const prevFailed = previousInvoices.filter((i) => i.status === "FAILED").length;
-    const prevMatchRate = prevTotal > 0 ? (prevMatched / prevTotal) * 100 : 0;
+    let prevMatched = 0;
+    let prevFailed = 0;
+
+    for (let i = 0; i < previousInvoices.length; i++) {
+      const status = previousInvoices[i].status;
+      if (status === "MATCHED") {
+        prevMatched++;
+      } else if (status === "FAILED") {
+        prevFailed++;
+      }
+    }
+
+    let prevMatchRate = 0;
+    if (prevTotal > 0) {
+      prevMatchRate = (prevMatched / prevTotal) * 100;
+    }
 
     let prevTimeMs = 0;
     let prevRowsSum = 0;
-    previousBatches.forEach((b) => {
-      const dur = b.updatedAt.getTime() - b.createdAt.getTime();
-      if (dur > 0 && b.totalRows > 0) {
-        prevTimeMs += dur;
+    for (let i = 0; i < previousBatches.length; i++) {
+      const b = previousBatches[i];
+      const duration = b.updatedAt.getTime() - b.createdAt.getTime();
+      if (duration > 0 && b.totalRows > 0) {
+        prevTimeMs += duration;
         prevRowsSum += b.totalRows;
       }
-    });
-    const prevAvgTime = prevRowsSum > 0 ? (prevTimeMs / prevRowsSum) / 1000 : 0.15;
+    }
 
-    // 5. Compute Changes
+    let prevAvgTime = 0.15;
+    if (prevRowsSum > 0) {
+      prevAvgTime = prevTimeMs / prevRowsSum / 1000;
+    }
+
+    // 5. Compute percentage change labels
     // Total Processed
-    const totalChangePct = prevTotal === 0 ? (curTotal === 0 ? 0 : 100) : ((curTotal - prevTotal) / prevTotal) * 100;
-    const totalChange = `${totalChangePct >= 0 ? "+" : ""}${totalChangePct.toFixed(1)}%`;
+    let totalChangePct = 0;
+    if (prevTotal === 0) {
+      if (curTotal > 0) totalChangePct = 100;
+    } else {
+      totalChangePct = ((curTotal - prevTotal) / prevTotal) * 100;
+    }
+    const totalPrefix = totalChangePct >= 0 ? "+" : "";
+    const totalChange = `${totalPrefix}${totalChangePct.toFixed(1)}%`;
     const totalPositive = curTotal >= prevTotal;
 
     // Match Rate
-    const matchRateChangePct = prevMatchRate === 0 ? (curMatchRate === 0 ? 0 : 100) : ((curMatchRate - prevMatchRate) / prevMatchRate) * 100;
-    const matchRateChange = `${matchRateChangePct >= 0 ? "+" : ""}${matchRateChangePct.toFixed(1)}%`;
+    let matchRateChangePct = 0;
+    if (prevMatchRate === 0) {
+      if (curMatchRate > 0) matchRateChangePct = 100;
+    } else {
+      matchRateChangePct = ((curMatchRate - prevMatchRate) / prevMatchRate) * 100;
+    }
+    const matchPrefix = matchRateChangePct >= 0 ? "+" : "";
+    const matchRateChange = `${matchPrefix}${matchRateChangePct.toFixed(1)}%`;
     const matchRatePositive = curMatchRate >= prevMatchRate;
 
     // Avg Processing Time
     const timeDiff = curAvgTime - prevAvgTime;
-    const timeChange = `${timeDiff >= 0 ? "+" : ""}${timeDiff.toFixed(2)}s`;
+    const timePrefix = timeDiff >= 0 ? "+" : "";
+    const timeChange = `${timePrefix}${timeDiff.toFixed(2)}s`;
     const timePositive = curAvgTime <= prevAvgTime;
 
     // Critical Errors
     const errDiff = curFailed - prevFailed;
-    const errChange = `${errDiff >= 0 ? "+" : ""}${errDiff}`;
+    const errPrefix = errDiff >= 0 ? "+" : "";
+    const errChange = `${errPrefix}${errDiff}`;
     const errPositive = curFailed <= prevFailed;
 
     // 6. Generate Chart Data slots
     const slots = getChartSlots(dateRange, now);
-    currentInvoices.forEach((inv) => {
+
+    for (let i = 0; i < currentInvoices.length; i++) {
+      const inv = currentInvoices[i];
       const time = inv.createdAt.getTime();
-      for (const slot of slots) {
+
+      for (let s = 0; s < slots.length; s++) {
+        const slot = slots[s];
         if (time >= slot.start.getTime() && time <= slot.end.getTime()) {
           if (inv.status === "FAILED") {
             slot.errors++;
@@ -283,13 +345,17 @@ const uploadService = {
           break;
         }
       }
-    });
+    }
 
-    const barData = slots.map((s) => ({
-      name: s.label,
-      processed: s.processed,
-      errors: s.errors,
-    }));
+    const barData = [];
+    for (let i = 0; i < slots.length; i++) {
+      const s = slots[i];
+      barData.push({
+        name: s.label,
+        processed: s.processed,
+        errors: s.errors,
+      });
+    }
 
     const pieData = [
       { name: "Matches", value: curMatched },
@@ -304,8 +370,8 @@ const uploadService = {
         avgProcessingTime: { value: `${curAvgTime.toFixed(2)}s`, change: timeChange, positive: timePositive },
         criticalErrors: { value: curFailed.toLocaleString(), change: errChange, positive: errPositive },
       },
-      barData,
-      pieData,
+      barData: barData,
+      pieData: pieData,
     };
   },
 };
@@ -335,22 +401,23 @@ function getDateRanges(dateRange, now) {
   }
 
   return {
-    startDate,
-    endDate,
-    previousStartDate,
-    previousEndDate,
+    startDate: startDate,
+    endDate: endDate,
+    previousStartDate: previousStartDate,
+    previousEndDate: previousEndDate,
   };
 }
 
 // Chart slots generator helper
 function getChartSlots(dateRange, now) {
   const slots = [];
+
   if (dateRange === "Last 7 Days") {
     for (let i = 6; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
       const label = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
       slots.push({
-        label,
+        label: label,
         start: new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0),
         end: new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999),
         processed: 0,
@@ -362,7 +429,7 @@ function getChartSlots(dateRange, now) {
       const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
       const label = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
       slots.push({
-        label,
+        label: label,
         start: new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0),
         end: new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999),
         processed: 0,
@@ -370,12 +437,12 @@ function getChartSlots(dateRange, now) {
       });
     }
   } else if (dateRange === "Year to Date") {
-    const currentMonth = now.getMonth(); // 0-11
+    const currentMonth = now.getMonth(); // 0 to 11
     for (let i = 0; i <= currentMonth; i++) {
       const d = new Date(now.getFullYear(), i, 1);
       const label = d.toLocaleDateString("en-US", { month: "short" });
       slots.push({
-        label,
+        label: label,
         start: new Date(now.getFullYear(), i, 1, 0, 0, 0, 0),
         end: new Date(now.getFullYear(), i + 1, 0, 23, 59, 59, 999),
         processed: 0,
@@ -388,7 +455,7 @@ function getChartSlots(dateRange, now) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
       const label = d.toLocaleDateString("en-US", { month: "short" });
       slots.push({
-        label,
+        label: label,
         start: new Date(d.getFullYear(), d.getMonth(), 1, 0, 0, 0, 0),
         end: new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999),
         processed: 0,
@@ -396,6 +463,7 @@ function getChartSlots(dateRange, now) {
       });
     }
   }
+
   return slots;
 }
 
