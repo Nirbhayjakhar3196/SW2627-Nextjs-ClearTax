@@ -9,7 +9,6 @@ const PRIVATE_PREFIXES = [
   "/results",
   "/library",
   "/profile",
-  "/settings",
 ];
 
 export function proxy(request) {
@@ -40,7 +39,6 @@ export const config = {
     "/results/:path*",
     "/library/:path*",
     "/profile/:path*",
-    "/settings/:path*",
     "/login",
     "/signup",
   ],

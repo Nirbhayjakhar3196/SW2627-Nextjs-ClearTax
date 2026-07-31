@@ -200,4 +200,22 @@ router.post("/uploads/:id/retry", authenticateUser, async (req, res) => {
   }
 });
 
+// GET /api/reports/statistics
+router.get("/reports/statistics", authenticateUser, async (req, res) => {
+  try {
+    const { dateRange } = req.query;
+    const stats = await uploadService.getReportsStatistics(req.user.id, dateRange);
+    res.json({
+      success: true,
+      data: stats,
+    });
+  } catch (error) {
+    console.error("GET Reports Statistics Error:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Failed to retrieve reports statistics",
+    });
+  }
+});
+
 export default router;
