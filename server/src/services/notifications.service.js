@@ -1,3 +1,4 @@
+// Static array of mock notifications for the user dashboard
 const notifications = [
   {
     id: "note-1",
@@ -22,6 +23,10 @@ const notifications = [
   },
 ];
 
+/**
+ * Retrieves notification list.
+ */
 export async function getNotifications() {
   return notifications;
 }
+

@@ -2,33 +2,43 @@ import IORedis from "ioredis";
 import { env } from "./env.js";
 
 /**
- * Generates the robust Redis connection options following ioredis & BullMQ best practices.
+ * Creates connection options for Redis following ioredis and BullMQ rules.
  */
-const getRedisConfig = (customOptions = {}) => {
+function getRedisConfig(customOptions = {}) {
   const isTls = env.REDIS_URL.startsWith("rediss://");
-  
-  return {
-    keepAlive: 10000,          // Periodically pings the connection (TCP KeepAlive) to prevent idle timeouts
-    connectTimeout: 10000,     // Timeout after 10s if connection cannot be established
+
+  // Base options for Redis connection
+  const options = {
+    keepAlive: 10000,      // Send keep-alive packet every 10 seconds to maintain open TCP connection
+    connectTimeout: 10000, // Fail if connection takes longer than 10 seconds
     retryStrategy(times) {
-      // Reconnect strategy with exponential delay capped at 3000ms
+      // Reconnect delay starts at 100ms and caps at 3000ms (3 seconds)
       const delay = Math.min(times * 100, 3000);
       return delay;
     },
     reconnectOnError(err) {
-      const targetError = "READONLY";
-      if (err.message.includes(targetError)) {
-        return true;           // Automatically reconnect if connection becomes read-only
+      if (err.message.includes("READONLY")) {
+        return true; // Reconnect automatically if database becomes read-only
       }
       return false;
     },
-    ...(isTls ? { tls: { rejectUnauthorized: false } } : {}), // Auto-TLS for production rediss:// protocols
-    ...customOptions,
   };
-};
+
+  // Enable SSL/TLS for cloud Redis services like Upstash or Render
+  if (isTls) {
+    options.tls = { rejectUnauthorized: false };
+  }
+
+  // Merge custom options
+  if (customOptions.maxRetriesPerRequest !== undefined) {
+    options.maxRetriesPerRequest = customOptions.maxRetriesPerRequest;
+  }
+
+  return options;
+}
 
 /**
- * Registers production log events on the Redis client.
+ * Attaches logging event listeners to a Redis client.
  */
 function registerLogging(client) {
   client.on("connect", () => {
@@ -48,25 +58,23 @@ function registerLogging(client) {
   });
 }
 
-// Instantiate the primary client for general usage (like Express routing/injections)
+// 1. Primary Redis client instance for general server operations
 export const redis = new IORedis(env.REDIS_URL, getRedisConfig({ maxRetriesPerRequest: null }));
 registerLogging(redis);
 
 /**
- * Client factory for creating clean, isolated Redis client connections.
- * Essential for BullMQ Workers/QueueEvents that block connections.
+ * Factory function to create dedicated Redis client instances for BullMQ queue listeners.
  */
 export function createRedisClient(customOptions = {}) {
-  const client = new IORedis(env.REDIS_URL, getRedisConfig({
-    maxRetriesPerRequest: null,
-    ...customOptions
-  }));
+  const options = getRedisConfig(customOptions);
+  options.maxRetriesPerRequest = null;
+  const client = new IORedis(env.REDIS_URL, options);
   registerLogging(client);
   return client;
 }
 
 /**
- * Closes the primary Redis connection gracefully.
+ * Disconnects the main Redis client gracefully when the server stops.
  */
 export async function closeRedis() {
   try {
@@ -78,3 +86,4 @@ export async function closeRedis() {
     console.error("❌ Redis Main Client Disconnection Error:", error.message);
   }
 }
+

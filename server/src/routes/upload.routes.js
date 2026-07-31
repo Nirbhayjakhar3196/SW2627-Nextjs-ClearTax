@@ -4,27 +4,33 @@ import uploadService from "../services/upload.service.js";
 import { authenticateUser } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
+// Multer memory storage holds uploaded CSV files temporarily in RAM buffer
 const upload = multer({ storage: multer.memoryStorage() });
 
-// GET /api/invoices
+// GET /api/invoices - Paginated invoice query endpoint
 router.get("/invoices", authenticateUser, async (req, res) => {
   try {
-    const page = parseInt(req.query.page || "1");
-    const limit = parseInt(req.query.limit || "10");
+    const page = parseInt(req.query.page || "1", 10);
+    const limit = parseInt(req.query.limit || "10", 10);
     const sortBy = req.query.sortBy || "createdAt";
     const sortOrder = req.query.sortOrder || "desc";
     const status = req.query.status;
     const uploadBatchId = req.query.uploadBatchId;
     const search = req.query.search;
 
+    let parsedBatchId = undefined;
+    if (uploadBatchId) {
+      parsedBatchId = parseInt(uploadBatchId, 10);
+    }
+
     const result = await uploadService.getInvoicesPaged({
-      page,
-      limit,
-      sortBy,
-      sortOrder,
-      status,
-      uploadBatchId: uploadBatchId ? parseInt(uploadBatchId) : undefined,
-      search,
+      page: page,
+      limit: limit,
+      sortBy: sortBy,
+      sortOrder: sortOrder,
+      status: status,
+      uploadBatchId: parsedBatchId,
+      search: search,
       userId: req.user.id,
     });
 
@@ -42,23 +48,23 @@ router.get("/invoices", authenticateUser, async (req, res) => {
   }
 });
 
-// GET /api/uploads
+// GET /api/uploads - Paginated upload batch query endpoint
 router.get("/uploads", authenticateUser, async (req, res) => {
   try {
-    const page = parseInt(req.query.page || "1");
-    const limit = parseInt(req.query.limit || "10");
+    const page = parseInt(req.query.page || "1", 10);
+    const limit = parseInt(req.query.limit || "10", 10);
     const sortBy = req.query.sortBy || "createdAt";
     const sortOrder = req.query.sortOrder || "desc";
     const status = req.query.status;
     const search = req.query.search;
 
     const result = await uploadService.getUploadsPaged({
-      page,
-      limit,
-      sortBy,
-      sortOrder,
-      status,
-      search,
+      page: page,
+      limit: limit,
+      sortBy: sortBy,
+      sortOrder: sortOrder,
+      status: status,
+      search: search,
       userId: req.user.id,
     });
 
@@ -76,7 +82,7 @@ router.get("/uploads", authenticateUser, async (req, res) => {
   }
 });
 
-// GET /api/upload
+// GET /api/upload - Legacy simple list endpoint for upload history
 router.get("/upload", authenticateUser, async (req, res) => {
   try {
     const uploads = await uploadService.getAllUploads(req.user.id);
@@ -86,7 +92,7 @@ router.get("/upload", authenticateUser, async (req, res) => {
   }
 });
 
-// POST /api/upload
+// POST /api/upload - Upload CSV file endpoint
 router.post("/upload", authenticateUser, upload.single("file"), async (req, res) => {
   try {
     const userId = req.user.id;
@@ -98,8 +104,10 @@ router.post("/upload", authenticateUser, upload.single("file"), async (req, res)
       });
     }
 
+    // Convert multer file buffer into Web API File object expected by service layer
+    const fileMimeType = req.file.mimetype || "text/csv";
     const file = new File([req.file.buffer], req.file.originalname, {
-      type: req.file.mimetype || "text/csv",
+      type: fileMimeType,
     });
 
     const result = await uploadService.processFileUpload(file, userId);
@@ -125,36 +133,37 @@ router.post("/upload", authenticateUser, upload.single("file"), async (req, res)
   }
 });
 
-// GET /api/upload/:id
-// GET /api/uploads/:id
+// GET /api/upload/:id & GET /api/uploads/:id - Get single upload batch details
 router.get(["/upload/:id", "/uploads/:id"], authenticateUser, async (req, res) => {
   try {
-    const { id } = req.params;
-    const data = await uploadService.getUploadStatus(parseInt(id), req.user.id);
-    res.json({ success: true, data });
+    const batchId = parseInt(req.params.id, 10);
+    const data = await uploadService.getUploadStatus(batchId, req.user.id);
+    res.json({ success: true, data: data });
   } catch (error) {
     console.error("GET Upload Details Error:", error);
-    let status = 500;
+    let statusCode = 500;
     if (error.message === "Forbidden") {
-      status = 403;
+      statusCode = 403;
     } else if (error.message === "Upload batch not found") {
-      status = 404;
+      statusCode = 404;
     }
-    res.status(status).json({
+    res.status(statusCode).json({
       success: false,
       message: error.message || "Failed to fetch upload batch details",
     });
   }
 });
 
-// GET /api/uploads/:id/progress
+// GET /api/uploads/:id/progress - Polling endpoint for background processing metrics
 router.get("/uploads/:id/progress", authenticateUser, async (req, res) => {
   try {
-    const { id } = req.params;
-    const data = await uploadService.getUploadStatus(parseInt(id), req.user.id);
-    const percentage = data.totalRows > 0
-      ? Math.round((data.processedRows / data.totalRows) * 100)
-      : 0;
+    const batchId = parseInt(req.params.id, 10);
+    const data = await uploadService.getUploadStatus(batchId, req.user.id);
+
+    let percentage = 0;
+    if (data.totalRows > 0) {
+      percentage = Math.round((data.processedRows / data.totalRows) * 100);
+    }
 
     res.json({
       status: data.status,
@@ -162,48 +171,48 @@ router.get("/uploads/:id/progress", authenticateUser, async (req, res) => {
       processedRows: data.processedRows,
       successfulRows: data.successfulRows,
       failedRows: data.failedRows,
-      percentage,
+      percentage: percentage,
     });
   } catch (error) {
     console.error("GET Upload Progress Error:", error);
-    let status = 500;
+    let statusCode = 500;
     if (error.message === "Forbidden") {
-      status = 403;
+      statusCode = 403;
     } else if (error.message === "Upload batch not found") {
-      status = 404;
+      statusCode = 404;
     }
-    res.status(status).json({
+    res.status(statusCode).json({
       success: false,
       message: error.message || "Failed to fetch progress metrics",
     });
   }
 });
 
-// POST /api/uploads/:id/retry
+// POST /api/uploads/:id/retry - Trigger retry for a failed or stalled upload batch
 router.post("/uploads/:id/retry", authenticateUser, async (req, res) => {
   try {
-    const { id } = req.params;
-    const result = await uploadService.retryUploadBatch(parseInt(id), req.user.id);
+    const batchId = parseInt(req.params.id, 10);
+    const result = await uploadService.retryUploadBatch(batchId, req.user.id);
     res.json(result);
   } catch (error) {
     console.error("POST Upload Retry Error:", error);
-    let status = 500;
+    let statusCode = 500;
     if (error.message === "Forbidden") {
-      status = 403;
+      statusCode = 403;
     } else if (error.message === "Upload batch not found") {
-      status = 404;
+      statusCode = 404;
     }
-    res.status(status).json({
+    res.status(statusCode).json({
       success: false,
       message: error.message || "Failed to trigger retry processing",
     });
   }
 });
 
-// GET /api/reports/statistics
+// GET /api/reports/statistics - Reports dashboard analytics endpoint
 router.get("/reports/statistics", authenticateUser, async (req, res) => {
   try {
-    const { dateRange } = req.query;
+    const dateRange = req.query.dateRange;
     const stats = await uploadService.getReportsStatistics(req.user.id, dateRange);
     res.json({
       success: true,
@@ -219,3 +228,4 @@ router.get("/reports/statistics", authenticateUser, async (req, res) => {
 });
 
 export default router;
+

@@ -2,20 +2,34 @@ import fs from "fs";
 import path from "path";
 import dotenv from "dotenv";
 
-// Detect and load the .env file either in the server directory or root directory
-const envPath = fs.existsSync(path.join(process.cwd(), ".env"))
-  ? path.join(process.cwd(), ".env")
-  : path.join(process.cwd(), "../.env");
+// 1. Find the .env file path
+// If .env exists in the current folder, use it; otherwise check the parent folder.
+let envPath = path.join(process.cwd(), ".env");
+if (!fs.existsSync(envPath)) {
+  envPath = path.join(process.cwd(), "../.env");
+}
+
+// 2. Load environment variables into process.env
 dotenv.config({ path: envPath });
 
-const requiredEnv = ["DATABASE_URL", "JWT_SECRET", "REDIS_URL"];
-const missingEnv = requiredEnv.filter((key) => !process.env[key]);
+// 3. Verify mandatory environment variables exist
+const requiredEnvKeys = ["DATABASE_URL", "JWT_SECRET", "REDIS_URL"];
+const missingEnvKeys = [];
 
-if (missingEnv.length > 0) {
-  console.error(`❌ [Config] Critical missing environment variables: ${missingEnv.join(", ")}`);
+for (let i = 0; i < requiredEnvKeys.length; i++) {
+  const key = requiredEnvKeys[i];
+  if (!process.env[key]) {
+    missingEnvKeys.push(key);
+  }
+}
+
+// If any required variable is missing, stop the server startup
+if (missingEnvKeys.length > 0) {
+  console.error(`❌ [Config] Critical missing environment variables: ${missingEnvKeys.join(", ")}`);
   process.exit(1);
 }
 
+// 4. Export configuration object for the application
 export const env = {
   DATABASE_URL: process.env.DATABASE_URL,
   DIRECT_URL: process.env.DIRECT_URL || process.env.DATABASE_URL,
@@ -30,3 +44,4 @@ export const env = {
   SMTP_PASS: process.env.SMTP_PASS,
   SMTP_FROM: process.env.SMTP_FROM || '"ClearTax Support" <support@cleartax.com>',
 };
+
