@@ -2,14 +2,25 @@ import axios from "axios";
 import { useAuthStore, getCookie } from "../store/auth.store";
 
 const getBaseURL = () => {
-  if (process.env.NEXT_PUBLIC_API_URL) {
-    return `${process.env.NEXT_PUBLIC_API_URL}/api`;
-  }
+  // 1. If running in the browser, check current hostname
   if (typeof window !== "undefined") {
-    if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+    const hostname = window.location.hostname;
+    // Local development mode
+    if (hostname === "localhost" || hostname === "127.0.0.1") {
       return "http://localhost:5000/api";
     }
   }
+
+  // 2. If env variable is specified and is NOT localhost, use it
+  if (process.env.NEXT_PUBLIC_API_URL && !process.env.NEXT_PUBLIC_API_URL.includes("localhost")) {
+    const cleanUrl = process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, "");
+    if (cleanUrl.endsWith("/api")) {
+      return cleanUrl;
+    }
+    return `${cleanUrl}/api`;
+  }
+
+  // 3. Default production URL for deployed Vercel frontend to talk to Render backend
   return "https://sw2627-nextjs-cleartax-6.onrender.com/api";
 };
 
