@@ -30,13 +30,14 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow server-to-server or non-browser requests (e.g. Postman or test scripts)
+      // Allow server-to-server or non-browser requests (e.g. Postman or integration scripts)
       if (!origin) {
         return callback(null, true);
       }
 
-      // Check if origin matches allowed localhost or production domain pattern
+      // Check if origin matches allowed localhost or production Vercel domain pattern
       let isAllowed = false;
+
       if (allowedOrigins.includes(origin)) {
         isAllowed = true;
       } else if (origin.endsWith(".vercel.app")) {
@@ -48,7 +49,8 @@ app.use(
       if (isAllowed) {
         callback(null, true);
       } else {
-        callback(new Error("Not allowed by CORS"));
+        // Disallow origin safely without throwing Express 500 exception
+        callback(null, false);
       }
     },
     credentials: true,
