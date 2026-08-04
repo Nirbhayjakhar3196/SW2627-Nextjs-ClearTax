@@ -2,7 +2,7 @@
 
 ## Problem Statement
 
-ClearTax wants a bulk invoice upload (CSV) feature that processes uploaded invoices in the background and displays real-time progress. Processed invoices should appear in a scrollable table with Match / Mismatch status. If one invoice fails during processing, remaining invoices should continue processing. Row-level errors should be visible to the user.
+ClearTax wants a bulk invoice upload (CSV) feature that processes uploaded invoices in the background and displays progress. Processed invoices should appear in a scrollable table with match or mismatch status. If one invoice fails during processing, remaining invoices should continue processing. Row-level errors should be visible to the user.
 
 ---
 
@@ -46,7 +46,7 @@ And if one invoice fails, remaining invoices should continue processing.
 - System creates a background processing job.
 - User immediately receives confirmation.
 - Background worker processes invoices.
-- Progress updates continuously.
+- Progress updates are reflected through polling.
 - Every invoice is processed independently.
 - Failed invoices do not stop processing.
 - Match / Mismatch status is calculated.
@@ -60,7 +60,7 @@ And if one invoice fails, remaining invoices should continue processing.
 - Fast Upload Response
 - Scalable Architecture
 - Fault Tolerance
-- Real-Time Progress
+- Near-Real-Time Progress
 - Responsive UI
 - Efficient Memory Usage
 - Secure File Upload
@@ -86,5 +86,5 @@ A successful upload means:
 - Every invoice processed.
 - Successful invoices stored.
 - Failed invoices logged.
-- User receives progress updates.
+- User receives progress updates through periodic refresh.
 - Final results displayed successfully.

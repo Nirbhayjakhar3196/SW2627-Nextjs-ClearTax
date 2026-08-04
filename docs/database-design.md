@@ -2,16 +2,34 @@
 
 ## Overview
 
-The system uses two primary MongoDB collections:
+The system uses three Prisma models backed by PostgreSQL:
 
-1. UploadBatch
-2. InvoiceRow
+1. User
+2. UploadBatch
+3. Invoice
 
-This separation ensures scalability and allows each invoice to be processed independently.
+This separation keeps user data, batch metadata, and invoice rows normalized while still allowing each invoice to be processed independently.
 
 ---
 
-# UploadBatch Collection
+# User Model
+
+Purpose:
+Stores account details and profile metadata.
+
+Fields:
+
+- name
+- email
+- password
+- role
+- profilePicture
+- createdAt
+- updatedAt
+
+---
+
+# UploadBatch Model
 
 Purpose:
 Stores metadata about each uploaded CSV file.
@@ -19,19 +37,19 @@ Stores metadata about each uploaded CSV file.
 Fields:
 
 - fileName
-- uploadedBy
+- originalFileName
 - totalRows
 - processedRows
-- successRows
+- successfulRows
 - failedRows
-- progress
 - status
 - createdAt
 - updatedAt
+- userId
 
 ---
 
-# InvoiceRow Collection
+# Invoice Model
 
 Purpose:
 Stores information for every invoice present in the uploaded CSV.
@@ -39,12 +57,9 @@ Stores information for every invoice present in the uploaded CSV.
 Fields:
 
 - uploadBatchId
-- rowNumber
 - invoiceNumber
-- vendorName
-- gstNumber
+- vendor
 - amount
-- matchStatus
 - status
 - errorMessage
 - createdAt
@@ -54,11 +69,15 @@ Fields:
 
 # Relationship
 
-One UploadBatch
+One User
 
 ↓
 
-Many InvoiceRows
+Many UploadBatches
+
+↓
+
+Many Invoices
 
 ---
 
@@ -70,7 +89,7 @@ progress = processedRows / totalRows × 100
 
 # Row-Level Error Handling
 
-Each InvoiceRow stores its own:
+Each Invoice stores its own:
 
 - status
 - errorMessage
