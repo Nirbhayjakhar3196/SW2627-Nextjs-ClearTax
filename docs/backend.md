@@ -1,17 +1,17 @@
 # Backend Architecture & Flow
 
-This document details how the backend of the Bulk Invoice Processing System was built, its directory structure, database design, asynchronous queue flow, API endpoints, and system operations.
+This document describes the current backend implementation: Express routes, Prisma models, Redis and BullMQ job processing, and the upload lifecycle.
 
 ---
 
 ## 1. Technology Stack
 
-* **Runtime Environment**: Node.js (v18+)
+* **Runtime Environment**: Node.js
 * **Application Framework**: Express.js
-* **Database Client & ORM**: Prisma Client (configured for PostgreSQL)
-* **In-Memory Queue Store**: Redis (v6+)
-* **Job Queue Engine**: BullMQ (v4+)
-* **Validation Library**: Zod (for validation schemas)
+* **Database Client & ORM**: Prisma Client configured for PostgreSQL
+* **In-Memory Queue Store**: Redis
+* **Job Queue Engine**: BullMQ
+* **Validation Library**: Zod
 * **File Upload Processing**: Multer
 
 ---
@@ -26,38 +26,34 @@ server/
 │   ├── schema.prisma          # Database schema definitions
 │   └── seed.js                # Database seeder script
 ├── src/
-│   ├── config/                # Environment variables, database client, and Redis clients
-│   ├── lib/                   # Shared client initializations (e.g., prisma)
-│   ├── middleware/            # Express request middleware (e.g., authentication)
-│   ├── queues/                # BullMQ queue creators and setups
-│   ├── repositories/          # Prisma database query abstractions
+│   ├── config/                # Environment variables, Prisma client, and Redis client
+│   ├── middleware/            # Express request middleware such as authentication
+│   ├── queues/                # BullMQ queue definitions
+│   ├── repositories/          # Prisma database query helpers
 │   ├── routes/                # REST API routers
-│   ├── services/              # Business logic (e.g., auth, email, upload processing)
+│   ├── services/              # Business logic for auth, upload processing, and reports
 │   ├── validations/           # Zod schema definitions
 │   ├── workers/               # Background BullMQ workers
-│   └── server.js              # Application entry point, server startup, and shutdown handlers
+│   └── server.js              # Application entry point and graceful shutdown handlers
 └── uploads/                   # Local folder storing uploaded CSV files
 ```
 
 ### Folder Responsibilities
 
-* **`config/`**: Sets up the application configurations:
-  * `env.js`: Accesses environment variables (`PORT`, `DATABASE_URL`, `REDIS_URL`, `CLIENT_URL`).
-  * `prisma.js`: Manages database connections and exposes the Prisma client.
-  * `redis.js`: Creates standard and duplicate Redis connections (necessary for BullMQ blocking clients).
-* **`routes/`**: Registers the endpoint paths and routes requests to the controller or service layer.
-* **`middleware/`**: Houses filters like auth check (`auth.middleware.js`) which parses JWT bearer tokens to secure routes.
-* **`services/`**: Implements core business logic such as OTP verification, encryption/decryption, user profiles, batch file processing, and retry triggering.
-* **`repositories/`**: Abstract layer isolating database interactions from business services. All queries to PostgreSQL models (`User`, `UploadBatch`, `Invoice`) go through repository functions in `upload.repository.js`.
-* **`queues/`**: Initializes the BullMQ `Queue` instances.
+* **`config/`**: Sets up the application configuration and shared clients.
+* **`routes/`**: Registers the endpoint paths for auth, uploads, invoices, and reports.
+* **`middleware/`**: Houses the JWT auth guard used to secure routes.
+* **`services/`**: Implements core business logic such as auth, upload orchestration, retry triggering, and report aggregation.
+* **`repositories/`**: Abstract layer isolating Prisma interactions from business services.
+* **`queues/`**: Initializes the BullMQ `Queue` instance.
 * **`workers/`**: Initializes the BullMQ `Worker` instance to run background jobs.
-* **`validations/`**: Configures data validators (e.g., signup/login body validation).
+* **`validations/`**: Configures data validators such as signup and login body validation.
 
 ---
 
 ## 3. Database Design
 
-The database uses PostgreSQL as its primary data store, using Prisma as the ORM. The relational structure consists of three main tables:
+The database uses PostgreSQL as its primary data store, with Prisma as the ORM. The relational structure consists of three main models:
 
 ```mermaid
 erDiagram

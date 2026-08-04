@@ -2,11 +2,9 @@
 
 ## Overview
 
-The Bulk Invoice Upload System allows users to upload a CSV file containing multiple invoices.
+The system lets users upload a CSV file containing multiple invoices.
 
-Instead of processing the CSV immediately, the system stores the upload request and delegates invoice processing to a background worker.
-
-This ensures that users receive an immediate response while invoice processing continues asynchronously.
+Instead of processing the CSV immediately, the upload is stored and a background worker processes it asynchronously.
 
 ---
 
@@ -28,7 +26,7 @@ Upload API
 
 ↓
 
-MongoDB (Upload Batch)
+PostgreSQL (Upload Batch)
 
 ↓
 
@@ -52,7 +50,7 @@ Invoice Matching
 
 ↓
 
-MongoDB (Invoice Rows)
+PostgreSQL (Invoice Rows)
 
 ↓
 
@@ -60,7 +58,7 @@ Progress Update
 
 ↓
 
-Server Sent Events (SSE)
+Polling Endpoint
 
 ↓
 
@@ -76,7 +74,7 @@ Responsibilities
 
 - Upload CSV
 - Show upload progress
-- Listen for progress updates
+- Poll for progress updates
 - Display invoice table
 - Display row errors
 
@@ -94,7 +92,7 @@ Responsibilities
 
 ---
 
-## MongoDB
+## PostgreSQL
 
 Responsibilities
 
@@ -127,11 +125,11 @@ Responsibilities
 
 ---
 
-## SSE
+## Polling
 
 Responsibilities
 
-- Push live progress updates
+- Fetch live progress from the API
 - Notify frontend about completion
 - Notify frontend about failures
 
@@ -143,7 +141,7 @@ Responsibilities
 
 2. Backend validates uploaded file.
 
-3. Upload metadata is stored in MongoDB.
+3. Upload metadata is stored in PostgreSQL.
 
 4. Backend creates a BullMQ job.
 
@@ -161,7 +159,7 @@ Responsibilities
 
 11. Progress percentage is updated.
 
-12. SSE sends progress updates.
+12. Frontend polls the batch progress endpoint.
 
 13. Frontend updates progress bar.
 
@@ -218,9 +216,9 @@ Redis stores queued jobs in memory for very fast processing.
 
 ---
 
-# Why MongoDB?
+# Why PostgreSQL?
 
-MongoDB stores:
+PostgreSQL stores:
 
 - Upload batches
 - Invoice rows
@@ -229,13 +227,11 @@ MongoDB stores:
 
 ---
 
-# Why SSE?
+# Why Polling?
 
-The frontend only needs updates from the server.
+The frontend only needs periodic updates from the server.
 
-Server → Client
-
-Therefore SSE is simpler than WebSockets.
+Polling matches the current API and keeps the implementation simple.
 
 ---
 

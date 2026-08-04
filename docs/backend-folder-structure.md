@@ -6,7 +6,22 @@ The backend follows a layered architecture where each folder has a single respon
 
 ## Folder Structure
 
-(Add the complete tree.)
+```text
+server/
+├── prisma/
+│   ├── schema.prisma
+│   ├── seed.js
+│   └── migrations/
+└── src/
+	├── config/
+	├── middleware/
+	├── queues/
+	├── repositories/
+	├── routes/
+	├── services/
+	├── validations/
+	└── workers/
+```
 
 ## Responsibilities
 
@@ -14,7 +29,7 @@ The backend follows a layered architecture where each folder has a single respon
 Application configuration.
 
 ### controllers/
-Receive HTTP requests and send responses.
+Not used in the current backend structure.
 
 ### services/
 Business logic.
@@ -22,8 +37,8 @@ Business logic.
 ### routes/
 API endpoints.
 
-### models/
-MongoDB schemas.
+### repositories/
+Prisma data access helpers.
 
 ### workers/
 Background job processing.
@@ -32,22 +47,29 @@ Background job processing.
 BullMQ queues.
 
 ### parsers/
-CSV parsing.
+CSV parsing is handled in the upload service and worker.
 
 ### validators/
 Invoice validation.
 
-### middlewares/
-Reusable request middleware.
+### middleware/
+JWT authentication and request guards.
 
 ### utils/
 Helper functions.
 
 ### events/
-SSE implementation.
+Not used. Progress is exposed through polling endpoints.
 
 ### constants/
-Application constants.
+Not used as a standalone folder in the current implementation.
+
+## Notes
+
+- There is no separate controllers folder in the current implementation.
+- There is no separate models folder; Prisma models live in `schema.prisma`.
+- CSV parsing happens in the worker and upload service.
+- There is no SSE implementation; progress is exposed through polling endpoints.
 
 ## Benefits
 
