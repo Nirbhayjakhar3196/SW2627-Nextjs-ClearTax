@@ -4,7 +4,7 @@
 
 ## 1. Project Overview
 
-The Bulk Invoice Processing System allows users to upload invoice CSV files that are processed asynchronously in the background. Users can monitor processing progress in real time and review the processing result of every invoice without blocking the application.
+The Bulk Invoice Processing System allows users to upload invoice CSV files that are processed asynchronously in the background. Users can monitor processing progress and review the result of every invoice without blocking the application.
 
 ---
 
@@ -15,7 +15,7 @@ Businesses often upload thousands of invoices at once. Processing them synchrono
 The system should:
 
 - Process uploaded CSV files in the background
-- Show live processing progress
+- Show processing progress
 - Continue processing even if some rows fail
 - Display success and failure for every invoice
 
@@ -25,7 +25,7 @@ The system should:
 
 - Fast CSV upload experience
 - Background invoice processing
-- Real-time progress updates
+- Near-real-time progress updates
 - Row-level error handling
 - Scalable architecture
 
@@ -98,7 +98,7 @@ If an invoice fails:
 - Upload CSV file
 - Process invoices asynchronously
 - Store processing results
-- Display live progress
+- Display progress
 - Show row-level errors
 - Support thousands of invoice records
 
@@ -120,7 +120,7 @@ The project is considered complete when:
 
 - CSV upload works
 - Background worker processes invoices
-- Progress updates are shown in real time
+- Progress updates are shown through polling
 - Failed rows do not stop processing
 - Results table displays every invoice correctly
 
@@ -133,14 +133,16 @@ The project is considered complete when:
 - Next.js
 - React
 - Tailwind CSS
-- TanStack Query
+- Zustand
+- Framer Motion
+- Axios
 
 ### Backend
 
 - Node.js
 - Express.js
-- MongoDB
-- Mongoose
+- PostgreSQL
+- Prisma
 
 ### Background Processing
 
@@ -149,16 +151,15 @@ The project is considered complete when:
 
 ### Real-Time Updates
 
-- Server-Sent Events (SSE)
+- Polling the batch progress endpoint
 
 ---
 
 ## 10. Future Enhancements
 
 - Retry failed invoices
-- User authentication
 - Upload history
-- Search & filters
+- Search and filters
 - Export processing report
 
 ⭐ Email notification after CSV processing

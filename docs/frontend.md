@@ -1,19 +1,19 @@
 # Frontend Architecture & Flow
 
-This document details how the frontend of the Bulk Invoice Processing System was built, its directory structure, page routing, component layout, state management, HTTP configurations, and client-side data flows.
+This document describes the current Next.js client structure, routes, state management, API client, and UI flow.
 
 ---
 
 ## 1. Technology Stack
 
-* **Framework**: Next.js (v14+, using the App Router convention)
-* **Library**: React
-* **State Management**: Zustand (with state persistence middleware)
-* **Styling**: Vanilla CSS (global tokens, tailwind-like custom classes)
-* **Animations**: Framer Motion (page transitions, hover micro-animations, and sequential delays)
+* **Framework**: Next.js 16 with the App Router
+* **Library**: React 19
+* **State Management**: Zustand with persistence middleware
+* **Styling**: Tailwind CSS 4 with custom utility classes
+* **Animations**: Framer Motion
 * **Icons**: Lucide React
-* **HTTP Client**: Axios (with custom request/response interceptors)
-* **CSV Utility**: PapaParse (for client-side CSV formatting)
+* **HTTP Client**: Axios with request/response interceptors
+* **CSV Utility**: PapaParse
 
 ---
 
@@ -32,7 +32,6 @@ client/
     │   │   ├── profile/       # User profile details
     │   │   ├── reports/       # Visual reporting
     │   │   ├── results/       # Upload logs and detailed results
-    │   │   ├── settings/      # User preferences
     │   │   ├── upload/        # File drag-and-drop uploader
     │   │   └── layout.js      # Authenticated sidebar layout
     │   ├── login/             # Login page
@@ -55,17 +54,17 @@ client/
 
 ### 3.1 Authentication Route Guards
 
-Next.js routing is structured into protected and public views. Authenticated pages are wrapped inside the `(app)` router group. The `layout.js` inside `(app)` inspects the Zustand authentication store and browser cookies. If no active session or `bip_token` is present, users are automatically redirected to the `/login` page.
+Next.js routing is structured into protected and public views. Authenticated pages are wrapped inside the `(app)` router group. The `layout.js` inside `(app)` inspects the Zustand authentication store and browser cookies. If no active session or `bip_token` is present, users are redirected to `/login`.
 
 ### 3.2 Landing Page (`LandingPage.jsx`)
-Features a landing area introducing the ClearTax bulk upload features. It uses `Framer Motion` animations, counts up metrics dynamically via the `CountUp` component, and displays testimonials in a custom slider.
+Features the public landing area introducing the ClearTax bulk upload product. It uses motion-based sections and shared layout components.
 
 ### 3.3 Bulk Upload Dashboard (`upload/page.js`)
 Handles the user interface for sending CSV invoice batches to the server:
 * **Drag-and-Drop Area**: Implements standard HTML drag-and-drop triggers (`onDragOver`, `onDragLeave`, `onDrop`) to accept files, altering styling classnames dynamically based on drag status.
 * **File Filtering**: Validates file types by inspecting MIME types or extensions (`.csv` only), printing clean error alerts for skipped files.
 * **Multipart Request**: Builds a standard JavaScript `FormData` object containing the file under key `"file"`.
-* **Instant Feedbacks**: Displays loading Spinners during upload and returns batch summaries on success (Batch ID, number of files, success messages).
+* **Instant Feedback**: Displays loading state during upload and returns a batch summary on success.
 
 ### 3.4 Results & Progress Tracking (`results/page.js`)
 This page handles two distinct states based on the URL query parameter `jobId`:
@@ -75,7 +74,7 @@ Retrieves historical upload batches from `/api/uploads` page-by-page. Shows deta
 
 #### State B: Detailed Invoice Transactions (With `jobId` in URL)
 Shows individual transaction results inside a tabular interface:
-1. **Background Polling**: Checks if the batch status is `processing` or `pending`. If so, initializes an interval calling `/api/upload/${jobId}` every 1.5 seconds. The interval is automatically cleared as soon as status switches to `completed` or `failed`.
+1. **Background Polling**: Checks if the batch status is `processing` or `pending`. If so, it initializes an interval calling `/api/upload/${jobId}` every 1.5 seconds. The interval is cleared when status switches to `completed` or `failed`.
 2. **Dynamic Progress Bar**: Dynamically calculates the completion percentage using:
    $$\text{percentage} = \min\left(100, \text{Math.round}\left(\frac{\text{processedRows}}{\text{totalRows}} \times 100\right)\right)$$
 3. **Interactive Grid**: Provides search input (matching vendor, invoice number, or error messages) and status tabs (All, Matches, Mismatches, Failures) that filter rows instantly.
@@ -120,7 +119,7 @@ Configures a centralized API client targeting the Node express server URL (eithe
 
 ## 5. UI Styling & Theme Tokens
 
-The application features a modern styling system coded in `src/app/globals.css`:
-* **Colors**: Premium violet and stone base palette. Primary triggers use `#5a38ef` with subtle indigo shading.
-* **Glassmorphism**: Cards and navigation bars use a combination of light transparent backgrounds, white borders, and soft backdrop blur variables (`backdrop-blur-sm`).
-* **Micro-Animations**: Key interactive elements, tables, and buttons feature transitions on transform, scale, and background colors to deliver a premium user experience.
+The application uses a custom Tailwind-based visual system in `src/app/globals.css` and shared component class names:
+* **Colors**: Violet primary accents with stone and neutral surfaces.
+* **Glassmorphism**: Cards, banners, and table containers use translucent surfaces and blur effects.
+* **Micro-Animations**: Hover transitions, spring motion, and staggered reveals are used on key interactive elements.
