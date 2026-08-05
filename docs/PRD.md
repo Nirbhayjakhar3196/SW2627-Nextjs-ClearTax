@@ -168,7 +168,6 @@ The project is considered complete when:
 
 ⭐ Download processed CSV
 
-⭐ Pagination
 
 ⭐ Search
 
